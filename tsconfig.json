@@ -18,11 +18,17 @@
         "name": "next"
       }
     ],
-    "types": ["vitest/globals", "@testing-library/jest-dom"] ,
+    "types": ["@testing-library/jest-dom"],
     "paths": {
       "@/*": ["./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "tests",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "vitest.config.ts"
+  ]
 }
