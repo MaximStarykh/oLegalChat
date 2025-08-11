@@ -19,7 +19,17 @@ export async function middleware(request: NextRequest) {
   const isDev = process.env.NODE_ENV === "development"
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseDomain = supabaseUrl ? new URL(supabaseUrl).origin : ""
+  let supabaseDomain = ""
+  if (supabaseUrl) {
+    try {
+      // Only accept absolute URLs (must include protocol)
+      const parsed = new URL(supabaseUrl)
+      supabaseDomain = parsed.origin
+    } catch {
+      // Invalid URL provided; skip to avoid middleware crash
+      supabaseDomain = ""
+    }
+  }
 
   response.headers.set(
     "Content-Security-Policy",
