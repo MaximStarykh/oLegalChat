@@ -6,10 +6,15 @@ export async function GET() {
     const supabase = await createClient()
 
     if (!supabase) {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 500 }
-      )
+      // Supabase disabled: return default preferences for unauthenticated mode
+      return NextResponse.json({
+        layout: "fullscreen",
+        prompt_suggestions: true,
+        show_tool_invocations: true,
+        show_conversation_previews: true,
+        multi_model_enabled: false,
+        hidden_models: [],
+      })
     }
 
     // Get the current user
@@ -71,10 +76,27 @@ export async function PUT(request: NextRequest) {
     const supabase = await createClient()
 
     if (!supabase) {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 500 }
-      )
+      // Supabase disabled: emulate update by merging onto defaults and echoing back
+      const body = await request.json()
+      const {
+        layout,
+        prompt_suggestions,
+        show_tool_invocations,
+        show_conversation_previews,
+        multi_model_enabled,
+        hidden_models,
+      } = body
+
+      const merged = {
+        layout: layout ?? "fullscreen",
+        prompt_suggestions: prompt_suggestions ?? true,
+        show_tool_invocations: show_tool_invocations ?? true,
+        show_conversation_previews: show_conversation_previews ?? true,
+        multi_model_enabled: multi_model_enabled ?? false,
+        hidden_models: Array.isArray(hidden_models) ? hidden_models : [],
+      }
+
+      return NextResponse.json({ success: true, ...merged })
     }
 
     // Get the current user

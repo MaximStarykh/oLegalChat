@@ -6,10 +6,12 @@ export async function POST(request: Request) {
     const supabase = await createClient()
 
     if (!supabase) {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 500 }
-      )
+      // Supabase disabled: no-op success with echo
+      const body = await request.json()
+      const arr = Array.isArray(body?.favorite_models)
+        ? body.favorite_models
+        : []
+      return NextResponse.json({ success: true, favorite_models: arr })
     }
 
     // Get the current user
@@ -78,10 +80,8 @@ export async function GET() {
     const supabase = await createClient()
 
     if (!supabase) {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 500 }
-      )
+      // Supabase disabled: return empty list
+      return NextResponse.json({ favorite_models: [] })
     }
 
     // Get the current user
