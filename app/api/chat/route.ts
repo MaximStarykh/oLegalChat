@@ -26,11 +26,30 @@ type ChatRequest = {
   message_group_id?: string
 }
 
+interface WebInfo {
+  uri?: string
+  url?: string
+  title?: string
+  site?: string
+  snippet?: string
+}
+
+interface GroundingChunk {
+  web?: WebInfo
+}
+
+interface GroundingMetadata {
+  groundingChunks?: GroundingChunk[]
+}
+
 // Helper function to extract real URLs from Google's grounding metadata
-function extractRealSources(groundingMetadata: any, responseText: string) {
+function extractRealSources(
+  groundingMetadata: GroundingMetadata | undefined,
+  responseText: string
+) {
   if (!groundingMetadata?.groundingChunks) return []
-  
-  const sources = []
+
+  const sources: Array<{ title: string; url: string; snippet: string }> = []
   
   for (const chunk of groundingMetadata.groundingChunks) {
     if (!chunk?.web) continue
@@ -251,16 +270,14 @@ export async function POST(req: Request) {
                   })
                   
                   // Clean query - remove any site restrictions that might be added by system prompt
-                  let cleanQuery = query
+                  const cleanQuery = query
                     .replace(/\s*site:[^\s]+/g, '') // Remove site: restrictions
                     .replace(/\s*OR\s*site:[^\s]+/g, '') // Remove OR site: restrictions
                     .replace(/\s+/g, ' ') // Clean up multiple spaces
                     .trim()
                   
-                  console.log(`Original query: ${query}`)
-                  console.log(`Clean query: ${cleanQuery}`)
                   
-                  const result = await model.generateContent({
+                  const request = {
                     contents: [
                       {
                         role: "user",
@@ -272,16 +289,21 @@ export async function POST(req: Request) {
                       },
                     ],
                     tools: [{ googleSearch: {} }],
-                  } as any)
+                  }
+                  const result = await model.generateContent(
+                    request as unknown as Parameters<typeof model.generateContent>[0]
+                  )
                   
                   const response = await result.response
                   const responseText = response.text()
                   
                   // Extract sources from grounding metadata
-                  const gm: any = (response as any).candidates?.[0]?.groundingMetadata
+                  const gm = (
+                    response as {
+                      candidates?: Array<{ groundingMetadata?: GroundingMetadata }>
+                    }
+                  ).candidates?.[0]?.groundingMetadata
                   const sources = extractRealSources(gm, responseText)
-                  
-                  console.log(`Found ${sources.length} sources for query: ${cleanQuery}`)
                   
                   // Return sources in the format expected by the AI SDK
                   return {

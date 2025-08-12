@@ -150,8 +150,12 @@ export function handleStreamError(err: unknown): ApiError {
   console.error("🛑 streamText error:", err)
 
   // Extract error details from the AI SDK error
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const aiError = (err as { error?: any })?.error
+  const aiError =
+    typeof err === "object" && err && "error" in err
+      ? (err as {
+          error?: { responseBody?: string; statusCode?: number; message?: string }
+        }).error
+      : undefined
 
   if (aiError) {
     // Try to extract detailed error message from response body
@@ -198,21 +202,24 @@ export function handleStreamError(err: unknown): ApiError {
         statusCode: 429,
         code: "RATE_LIMIT_EXCEEDED",
       })
-    } else if (aiError.statusCode >= 400 && aiError.statusCode < 500) {
-      // Other client errors
-      const message = detailedMessage || aiError.message || "Request failed"
-      return Object.assign(new Error(message), {
-        statusCode: aiError.statusCode,
-        code: "CLIENT_ERROR",
-      })
-    } else {
-      // Server errors or other issues
-      const message = detailedMessage || aiError.message || "AI service error"
-      return Object.assign(new Error(message), {
-        statusCode: aiError.statusCode || 500,
-        code: "SERVER_ERROR",
-      })
-    }
+      } else if (
+        (aiError.statusCode ?? 0) >= 400 &&
+        (aiError.statusCode ?? 0) < 500
+      ) {
+        // Other client errors
+        const message = detailedMessage || aiError.message || "Request failed"
+        return Object.assign(new Error(message), {
+          statusCode: aiError.statusCode ?? 400,
+          code: "CLIENT_ERROR",
+        })
+      } else {
+        // Server errors or other issues
+        const message = detailedMessage || aiError.message || "AI service error"
+        return Object.assign(new Error(message), {
+          statusCode: aiError.statusCode ?? 500,
+          code: "SERVER_ERROR",
+        })
+      }
   } else {
     // Fallback for unknown error format
     return Object.assign(
@@ -267,8 +274,12 @@ export function extractErrorMessage(error: unknown): string {
   }
 
   // Handle AI SDK error objects
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const aiError = (error as any)?.error
+  const aiError =
+    typeof error === "object" && error && "error" in error
+      ? (error as {
+          error?: { responseBody?: string; statusCode?: number; message?: string }
+        }).error
+      : undefined
   if (aiError) {
     if (aiError.statusCode === 401) {
       return "Invalid API key or authentication failed. Please check your API key in settings."

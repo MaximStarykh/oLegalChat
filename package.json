@@ -12,7 +12,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
     "@ai-sdk/anthropic": "^1.2.10",
     "@ai-sdk/google": "^1.2.13",
     "@ai-sdk/mistral": "^1.2.0",

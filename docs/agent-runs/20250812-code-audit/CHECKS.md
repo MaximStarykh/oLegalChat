@@ -1,0 +1,6 @@
+- `npm install` reported 6 vulnerabilities.
+- `npx tsc --noEmit` produced no output, implying type checks passed.
+- `npm run lint` reported numerous errors including unexpected `any` and unused variables.
+- `npm run test` failed due to ESM module resolution errors.
+- `npm run test:e2e` had no output (script missing).
+- `npm run build` completed with warnings about critical dependency in @supabase/realtime-js.

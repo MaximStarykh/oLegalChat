@@ -1,5 +1,26 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
+
+interface UserPreferences {
+  layout: string
+  prompt_suggestions: boolean
+  show_tool_invocations: boolean
+  show_conversation_previews: boolean
+  multi_model_enabled: boolean
+  hidden_models: string[]
+}
+
+type UserPreferencesUpdate = Partial<UserPreferences>
+
+const prefsSchema = z.object({
+  layout: z.string().optional(),
+  prompt_suggestions: z.boolean().optional(),
+  show_tool_invocations: z.boolean().optional(),
+  show_conversation_previews: z.boolean().optional(),
+  multi_model_enabled: z.boolean().optional(),
+  hidden_models: z.array(z.string()).optional(),
+})
 
 export async function GET() {
   try {
@@ -77,7 +98,13 @@ export async function PUT(request: NextRequest) {
 
     if (!supabase) {
       // Supabase disabled: emulate update by merging onto defaults and echoing back
-      const body = await request.json()
+      const parseResult = prefsSchema.safeParse(await request.json())
+      if (!parseResult.success) {
+        return NextResponse.json(
+          { error: "Invalid preferences" },
+          { status: 400 }
+        )
+      }
       const {
         layout,
         prompt_suggestions,
@@ -85,15 +112,15 @@ export async function PUT(request: NextRequest) {
         show_conversation_previews,
         multi_model_enabled,
         hidden_models,
-      } = body
+      } = parseResult.data
 
-      const merged = {
+      const merged: UserPreferences = {
         layout: layout ?? "fullscreen",
         prompt_suggestions: prompt_suggestions ?? true,
         show_tool_invocations: show_tool_invocations ?? true,
         show_conversation_previews: show_conversation_previews ?? true,
         multi_model_enabled: multi_model_enabled ?? false,
-        hidden_models: Array.isArray(hidden_models) ? hidden_models : [],
+        hidden_models: hidden_models ?? [],
       }
 
       return NextResponse.json({ success: true, ...merged })
@@ -109,8 +136,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Parse the request body
-    const body = await request.json()
+    // Parse and validate the request body
+    const parseResult = prefsSchema.safeParse(await request.json())
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: "Invalid preferences" },
+        { status: 400 }
+      )
+    }
     const {
       layout,
       prompt_suggestions,
@@ -118,25 +151,10 @@ export async function PUT(request: NextRequest) {
       show_conversation_previews,
       multi_model_enabled,
       hidden_models,
-    } = body
-
-    // Validate the data types
-    if (layout && typeof layout !== "string") {
-      return NextResponse.json(
-        { error: "layout must be a string" },
-        { status: 400 }
-      )
-    }
-
-    if (hidden_models && !Array.isArray(hidden_models)) {
-      return NextResponse.json(
-        { error: "hidden_models must be an array" },
-        { status: 400 }
-      )
-    }
+    } = parseResult.data
 
     // Prepare update object with only provided fields
-    const updateData: any = {}
+    const updateData: UserPreferencesUpdate = {}
     if (layout !== undefined) updateData.layout = layout
     if (prompt_suggestions !== undefined)
       updateData.prompt_suggestions = prompt_suggestions
