@@ -5,7 +5,7 @@ import type { SourceUIPart } from "@ai-sdk/ui-utils"
 import { CaretDown, Link } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "motion/react"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { addUTM, formatUrl, getFavicon, getFaviconFallback } from "./utils"
 
 type SourcesListProps = {
@@ -23,27 +23,86 @@ export function SourcesList({ sources, className }: SourcesListProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [failedFavicons, setFailedFavicons] = useState<Set<string>>(new Set())
   const [faviconFallbacks, setFaviconFallbacks] = useState<Map<string, string[]>>(new Map())
+  const [currentFallbackIndex, setCurrentFallbackIndex] = useState<Map<string, number>>(new Map())
 
-  const handleFaviconError = (url: string) => {
+  const handleFaviconError = useCallback((url: string) => {
     setFailedFavicons((prev) => new Set(prev).add(url))
     
-    // Get fallback favicon URLs
-    const fallbacks = getFaviconFallback(url)
-    if (fallbacks) {
-      setFaviconFallbacks((prev) => new Map(prev).set(url, fallbacks))
-    }
-  }
-
-  const getFaviconUrl = (url: string) => {
-    if (failedFavicons.has(url)) {
-      const fallbacks = faviconFallbacks.get(url)
-      if (fallbacks && fallbacks.length > 0) {
-        // Return the first fallback that hasn't failed
-        return fallbacks[0]
+    // Get fallback favicon URLs if we haven't already
+    if (!faviconFallbacks.has(url)) {
+      const fallbacks = getFaviconFallback(url)
+      if (fallbacks) {
+        setFaviconFallbacks((prev) => new Map(prev).set(url, fallbacks))
+        setCurrentFallbackIndex((prev) => new Map(prev).set(url, 0))
       }
     }
+  }, [faviconFallbacks])
+
+  const getFaviconUrl = useCallback((url: string) => {
+    // If this URL has failed, try the next fallback
+    if (failedFavicons.has(url)) {
+      const fallbacks = faviconFallbacks.get(url)
+      const currentIndex = currentFallbackIndex.get(url) || 0
+      
+      if (fallbacks && currentIndex < fallbacks.length) {
+        return fallbacks[currentIndex]
+      }
+      
+      // If we've tried all fallbacks, return null to show fallback icon
+      return null
+    }
+    
     return getFavicon(url)
-  }
+  }, [failedFavicons, faviconFallbacks, currentFallbackIndex])
+
+  const handleFallbackError = useCallback((url: string) => {
+    const currentIndex = currentFallbackIndex.get(url) || 0
+    const fallbacks = faviconFallbacks.get(url)
+    
+    if (fallbacks && currentIndex < fallbacks.length - 1) {
+      // Try the next fallback
+      setCurrentFallbackIndex((prev) => new Map(prev).set(url, currentIndex + 1))
+    } else {
+      // All fallbacks failed, mark as completely failed
+      setFailedFavicons((prev) => new Set(prev).add(url))
+    }
+  }, [currentFallbackIndex, faviconFallbacks])
+
+  const renderFavicon = useCallback((source: SourceUIPart["source"], index: number) => {
+    const faviconUrl = getFaviconUrl(source.url)
+    const hasFailedCompletely = failedFavicons.has(source.url) && 
+      (!faviconFallbacks.get(source.url) || 
+       (currentFallbackIndex.get(source.url) || 0) >= (faviconFallbacks.get(source.url)?.length || 0))
+
+    if (!faviconUrl || hasFailedCompletely) {
+      return (
+        <div
+          key={`${source.url}-${index}`}
+          className="bg-muted border-background h-4 w-4 rounded-full border"
+        />
+      )
+    }
+
+    return (
+      <Image
+        key={`${source.url}-${index}`}
+        src={faviconUrl}
+        alt={`Favicon for ${source.title}`}
+        width={16}
+        height={16}
+        className="border-background h-4 w-4 rounded-sm border"
+        onError={() => handleFallbackError(source.url)}
+        onLoad={() => {
+          // Clear any error state if image loads successfully
+          setFailedFavicons((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(source.url)
+            return newSet
+          })
+        }}
+      />
+    )
+  }, [getFaviconUrl, failedFavicons, faviconFallbacks, currentFallbackIndex, handleFallbackError])
 
   return (
     <div className={cn("my-4", className)}>
@@ -56,28 +115,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
           <div className="flex flex-1 flex-row items-center gap-2 text-left text-sm">
             Sources
             <div className="flex -space-x-1">
-              {sources?.map((source, index) => {
-                const faviconUrl = getFaviconUrl(source.url)
-                const showFallback =
-                  !faviconUrl || (failedFavicons.has(source.url) && !faviconFallbacks.get(source.url)?.length)
-
-                return showFallback ? (
-                  <div
-                    key={`${source.url}-${index}`}
-                    className="bg-muted border-background h-4 w-4 rounded-full border"
-                  />
-                ) : (
-                  <Image
-                    key={`${source.url}-${index}`}
-                    src={faviconUrl}
-                    alt={`Favicon for ${source.title}`}
-                    width={16}
-                    height={16}
-                    className="border-background h-4 w-4 rounded-sm border"
-                    onError={() => handleFaviconError(source.url)}
-                  />
-                )
-              })}
+              {sources?.map((source, index) => renderFavicon(source, index))}
               {sources.length > 3 && (
                 <span className="text-muted-foreground ml-1 text-xs">
                   +{sources.length - 3}
@@ -105,8 +143,9 @@ export function SourcesList({ sources, className }: SourcesListProps) {
               <ul className="space-y-2 px-3 pt-3 pb-3">
                 {sources.map((source) => {
                   const faviconUrl = getFaviconUrl(source.url)
-                  const showFallback =
-                    !faviconUrl || (failedFavicons.has(source.url) && !faviconFallbacks.get(source.url)?.length)
+                  const hasFailedCompletely = failedFavicons.has(source.url) && 
+                    (!faviconFallbacks.get(source.url) || 
+                     (currentFallbackIndex.get(source.url) || 0) >= (faviconFallbacks.get(source.url)?.length || 0))
 
                   return (
                     <li key={source.id} className="flex items-center text-sm">
@@ -117,7 +156,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                           rel="noopener noreferrer"
                           className="text-primary group line-clamp-1 flex items-center gap-1 hover:underline"
                         >
-                          {showFallback ? (
+                          {!faviconUrl || hasFailedCompletely ? (
                             <div className="bg-muted h-4 w-4 flex-shrink-0 rounded-full" />
                           ) : (
                             <Image
@@ -126,7 +165,15 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                               width={16}
                               height={16}
                               className="h-4 w-4 flex-shrink-0 rounded-sm"
-                              onError={() => handleFaviconError(source.url)}
+                              onError={() => handleFallbackError(source.url)}
+                              onLoad={() => {
+                                // Clear any error state if image loads successfully
+                                setFailedFavicons((prev) => {
+                                  const newSet = new Set(prev)
+                                  newSet.delete(source.url)
+                                  return newSet
+                                })
+                              }}
                             />
                           )}
                           <span className="truncate">{source.title}</span>

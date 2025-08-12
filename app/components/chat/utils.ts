@@ -29,8 +29,12 @@ export const getFavicon = (url: string | null) => {
 
     const domain = urlObj.hostname
     
-    // Try multiple favicon services for better reliability
-    // Start with DuckDuckGo which is more reliable for government sites
+    // Validate domain format
+    if (!domain || domain.length === 0 || domain.includes('..') || domain.startsWith('.') || domain.endsWith('.')) {
+      return null
+    }
+    
+    // Try DuckDuckGo which is more reliable for government sites
     return `https://icons.duckduckgo.com/ip3/${domain}.ico`
   } catch {
     // No need to log errors for invalid URLs
@@ -50,12 +54,16 @@ export const getFaviconFallback = (url: string | null) => {
 
     const domain = urlObj.hostname
     
+    // Validate domain format
+    if (!domain || domain.length === 0 || domain.includes('..') || domain.startsWith('.') || domain.endsWith('.')) {
+      return null
+    }
+    
     // Return array of fallback options
     return [
       `https://icons.duckduckgo.com/ip3/${domain}.ico`,
       `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-      `https://favicon.io/favicon/${domain}/32x32.png`,
-      `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=32`
+      `https://favicon.io/favicon/${domain}/32x32.png`
     ]
   } catch {
     return null
