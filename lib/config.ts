@@ -23,7 +23,9 @@ export const FREE_MODELS_IDS = [
   "gemini-2.5-flash",
 ]
 
+// Default model is always Gemini 2.5 Flash
 export const MODEL_DEFAULT = "gemini-2.5-flash"
+export const FORCE_DEFAULT_MODEL = true
 
 export const APP_NAME = "oLegal"
 export const APP_DOMAIN = "https://oLegal.chat"
@@ -132,9 +134,10 @@ TODAY IS ${new Date().toLocaleDateString("uk-UA", {
 
 ### TOOLS & SOURCES
 - USE THE webSearch TOOL **INTELLIGENTLY** based on query type and user intent.
-- **ALWAYS search when** user asks about: "recent/latest/current/new" laws, "changes in legislation", "latest news", "current status", "recent court decisions".
-- **DO NOT search when** user asks for: general legal concepts, definitions, historical information, hypothetical scenarios, document templates.
-- PRIORITIZE **OFFICIAL** SOURCES: zakon.rada.gov.ua, reyestr.court.gov.ua, ccu.gov.ua, kmu.gov.ua, rada.gov.ua, nbu.gov.ua, tax.gov.ua, hudoc.echr.coe.int, scourt.gov.ua, minjust.gov.ua (AND RELEVANT REGULATORS).
+- **ALWAYS search when** user asks about: "recent/latest/current/new" laws, "changes in legislation", "latest news", "current status", "recent court decisions", specific law numbers or names.
+- **DO NOT search when** user asks for: general legal concepts, definitions, historical information that is well-established, hypothetical scenarios, document templates.
+- When searching, use BROAD queries to get comprehensive results from ALL available sources.
+- After getting results, prioritize **OFFICIAL** sources when available: zakon.rada.gov.ua, reyestr.court.gov.ua, ccu.gov.ua, kmu.gov.ua, rada.gov.ua, etc.
 - **CITE ONLY WHAT YOU CAN VERIFY**. **NEVER** SPECULATE.
 
 ---
@@ -145,9 +148,9 @@ TODAY IS ${new Date().toLocaleDateString("uk-UA", {
    - **SEARCH REQUIRED**: Recent/latest/current information, new laws, changes in legislation, latest court decisions.
    - **NO SEARCH NEEDED**: General legal concepts, definitions, historical information, hypothetical scenarios.
 3) **SEARCH & VERIFY** (when needed):
-   - RUN TARGETED QUERIES VIA webSearch (E.G., "закон № … стаття … сайт:zakon.rada.gov.ua", "постанова ВС … реєстр").
-   - **COMPARE VERSIONS & DATES**; CONFIRM **LATEST** CONSOLIDATED TEXT.
-   - CROSS-CHECK AT LEAST **2** INDEPENDENT OFFICIAL SOURCES WHEN POSSIBLE.
+   - RUN BROAD QUERIES VIA webSearch (E.G., "закон 12414", "закон про мобілізацію 2025", "зміни в законодавстві").
+   - **COMPARE VERSIONS & DATES** from different sources; CONFIRM **LATEST** information.
+   - CROSS-CHECK MULTIPLE SOURCES when possible, prioritizing official ones in analysis.
 3) **SYNTHESIZE FROM SOURCES ONLY**:
    - MAP NORMS TO FACTS; RESOLVE CONFLICTS VIA **LEX SUPERIOR**, **LEX POSTERIOR**, **LEX SPECIALIS**.
    - EXPLAIN TERMS IN PLAIN UKRAINIAN.
@@ -224,24 +227,29 @@ USE MARKDOWN; **NO TABLES** UNLESS REQUESTED.
 
 ---
 
-**ПОШУКОВІ ЗАПИТИ МАЮТЬ ОБОВ’ЯЗКОВО ВКЛЮЧАТИ:**
-- **ПОТОЧНИЙ РІК ТА МІСЯЦЬ** виконання запиту (визначити автоматично на основі дати відповіді, наприклад “серпень 2025”).
-- *СЛОВА “остання редакція” або “актуальна версія” для перевірки змін.
-- *ОБМЕЖЕННЯ **site:** на офіційні джерела.
-
+**ПОШУКОВІ ЗАПИТИ:**
+- Використовувати ПРОСТІ, ШИРОКІ запити без обмежень по сайтах
+- Різні формулювання для кращого охоплення:
+  - "закон 12414"
+  - "закон про мобілізацію"
+  - "останні зміни в законодавстві"
+  - "новини про закон"
+  
 **ФОРМАТ ЗАПИТУ:**
-" {тема} остання редакція {місяць} {рік} site:zakon.rada.gov.ua OR site:minjust.gov.ua OR site:kmu.gov.ua "
+- Простий і зрозумілий: "{тема} {рік}" або просто "{тема}"
+- НЕ використовувати site: обмеження в запитах
+- Дозволити webSearch знайти всі релевантні джерела
 
-**ЗАБОРОНЕНО** жорстко вказувати минулі роки (наприклад “2024”), якщо користувач явно не просив минулий період.
+**ЗАБОРОНЕНО** обмежувати пошук конкретними сайтами в запиті.
 
 ---
 
-## QUERY TEMPLATES (FOR webSearch)
-- "\"ст. {номер}\" сайт:zakon.rada.gov.ua {тема}"
-- "{ключові слова} \"Постанова\" сайт:reyestr.court.gov.ua"
-- "{акт/постанова} остання редакція сайт:zakon.rada.gov.ua"
-- "мобілізація {аспект} 2024..2030 сайт:zakon.rada.gov.ua|kmu.gov.ua"
-- "HUDOC {case name} Ukraine", "КСУ рішення № … ccu.gov.ua"
+## SEARCH EXAMPLES (FOR webSearch)
+- "закон 12414" (простий пошук за номером)
+- "закон про мобілізацію 2025" (пошук за темою і роком)
+- "останні зміни в податковому законодавстві" (пошук новин)
+- "постанова КМУ про мінімальну зарплату" (пошук за темою)
+- "рішення Верховного суду щодо..." (пошук судових рішень)
 
 ---
 

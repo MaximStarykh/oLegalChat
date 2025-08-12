@@ -44,75 +44,101 @@ function extractRealSources(groundingMetadata: any, responseText: string) {
     if (!url || !title) continue
     
     // Handle Google redirect URLs - extract real URLs from response text
-    if (url.includes('vertexaisearch.cloud.google.com/grounding-api-redirect/')) {
-      // Try to find real URLs in the response text that match the title
-      const urlMatches = responseText.match(/https?:\/\/[^\s\)\]\}\.,]+/g) || []
-      
-      // Find URLs that match the domain from the title
-      let realUrl = null
-      
-      // First, try to find URLs that match the title domain
-      if (title) {
-        const titleDomain = title.toLowerCase().replace(/[^a-z0-9.-]/g, '')
-        realUrl = urlMatches.find(u => {
-          try {
-            const urlObj = new URL(u)
-            return urlObj.hostname.toLowerCase().includes(titleDomain) ||
-                   titleDomain.includes(urlObj.hostname.toLowerCase())
-          } catch {
-            return false
-          }
-        })
-      }
-      
-      // If no domain match, try to find any valid non-Google URL
-      if (!realUrl) {
-        realUrl = urlMatches.find(u => {
-          try {
-            const urlObj = new URL(u)
-            return !urlObj.hostname.includes('google.com') && 
-                   !urlObj.hostname.includes('vertexai') &&
-                   urlObj.hostname.includes('.')
-          } catch {
-            return false
-          }
-        })
-      }
-      
-      // If still no match, try to construct from common Ukrainian domains
-      if (!realUrl && title) {
-        const commonDomains = [
-          'zakon.rada.gov.ua', 'reyestr.court.gov.ua', 'ccu.gov.ua', 
-          'kmu.gov.ua', 'rada.gov.ua', 'nbu.gov.ua', 'tax.gov.ua',
-          'minjust.gov.ua', 'diia.gov.ua', 'novaposhta.ua', 'ukrposhta.ua',
-          'wikipedia.org', 'ukrinform.ua', 'unian.ua', 'interfax.ua'
-        ]
+      if (url.includes('vertexaisearch.cloud.google.com/grounding-api-redirect/')) {
+        // Try to find real URLs in the response text that match the title
+        const urlMatches = responseText.match(/https?:\/\/[^\s\)\]\}\.,]+/g) || []
         
-        for (const domain of commonDomains) {
-          if (title.toLowerCase().includes(domain.replace(/[^a-z0-9.-]/g, ''))) {
-            realUrl = `https://${domain}`
-            break
+        // Find URLs that match the domain from the title
+        let realUrl = null
+        
+        // First, try to find URLs that match the title domain
+        if (title) {
+          const titleDomain = title.toLowerCase().replace(/[^a-z0-9.-]/g, '')
+          realUrl = urlMatches.find(u => {
+            try {
+              const urlObj = new URL(u)
+              return urlObj.hostname.toLowerCase().includes(titleDomain) ||
+                     titleDomain.includes(urlObj.hostname.toLowerCase())
+            } catch {
+              return false
+            }
+          })
+        }
+        
+        // If no domain match, try to find any valid non-Google URL
+        if (!realUrl) {
+          realUrl = urlMatches.find(u => {
+            try {
+              const urlObj = new URL(u)
+              return !urlObj.hostname.includes('google.com') && 
+                     !urlObj.hostname.includes('vertexai') &&
+                     urlObj.hostname.includes('.')
+            } catch {
+              return false
+            }
+          })
+        }
+        
+        // If still no match, try to construct from common Ukrainian domains
+        if (!realUrl && title) {
+          const commonDomains = [
+            'zakon.rada.gov.ua', 'reyestr.court.gov.ua', 'ccu.gov.ua', 
+            'kmu.gov.ua', 'rada.gov.ua', 'nbu.gov.ua', 'tax.gov.ua',
+            'minjust.gov.ua', 'diia.gov.ua', 'novaposhta.ua', 'ukrposhta.ua',
+            'wikipedia.org', 'ukrinform.ua', 'unian.ua', 'interfax.ua'
+          ]
+          
+          for (const domain of commonDomains) {
+            if (title.toLowerCase().includes(domain.replace(/[^a-z0-9.-]/g, ''))) {
+              // Extract path from title if possible
+              const pathMatch = title.match(/\/[^\s]+/)
+              const path = pathMatch ? pathMatch[0] : ''
+              realUrl = `https://${domain}${path}`
+              break
+            }
           }
+        }
+        
+        if (realUrl) {
+          url = realUrl
+          // Extract snippet from response text around the URL mention
+          if (!snippet) {
+            const urlIndex = responseText.indexOf(realUrl)
+            if (urlIndex !== -1) {
+              const start = Math.max(0, urlIndex - 100)
+              const end = Math.min(responseText.length, urlIndex + 100)
+              snippet = responseText.slice(start, end).trim()
+            }
+          }
+        } else {
+          // Skip this source if we can't find a real URL
+          continue
+        }
+      }
+    
+    // Clean up and improve title
+    if (title) {
+      // Keep domain for official sources
+      if (!title.includes('gov.ua')) {
+        if (title.includes('.')) {
+          title = title.split('.')[0]
         }
       }
       
-      if (realUrl) {
-        url = realUrl
-      } else {
-        // Skip this source if we can't find a real URL
-        continue
-      }
-    }
-    
-    // Clean up title (remove domain suffixes and clean formatting)
-    if (title) {
-      // Remove domain suffixes
-      if (title.includes('.')) {
-        title = title.split('.')[0]
-      }
-      // Clean up formatting
+      // Clean up formatting but preserve Ukrainian characters
       title = title.charAt(0).toUpperCase() + title.slice(1)
-      title = title.replace(/[^\w\s-]/g, '').trim()
+      title = title.replace(/[^\wа-яА-ЯіІїЇєЄґҐ\s-]/g, '').trim()
+      
+      // Add source type indicator for better context
+      if (url.includes('gov.ua')) {
+        title = `[Офіційне] ${title}`
+      } else if (url.includes('rada.gov.ua')) {
+        title = `[Рада] ${title}`
+      } else if (url.includes('kmu.gov.ua')) {
+        title = `[КМУ] ${title}`
+      } else if (url.includes('president.gov.ua')) {
+        title = `[ОПУ] ${title}`
+      }
     }
     
     // Validate final URL
@@ -204,12 +230,12 @@ export async function POST(req: Request) {
       ? {
           webSearch: {
             description:
-              "Search the web for current legal information, recent laws, court decisions, and up-to-date legislation in Ukraine. Use this tool whenever you need to find the most recent and accurate information about laws, regulations, or legal developments. Always search before providing legal advice to ensure accuracy.",
+              "Search the web for current information. Use this tool to find recent news, articles, documents, and other web content. DO NOT restrict searches to specific sites unless explicitly requested by the user. Search broadly across all available sources.",
             parameters: z.object({
               query: z.string().min(3),
-              maxResults: z.number().int().min(1).max(5).default(3).optional(),
+              maxResults: z.number().int().min(1).max(10).default(5).optional(),
             }),
-            execute: async ({ query, maxResults = 3 }) => {
+            execute: async ({ query, maxResults = 5 }) => {
               const googleKey =
                 process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
                 process.env.GEMINI_API_KEY
@@ -224,13 +250,23 @@ export async function POST(req: Request) {
                     model: "gemini-2.5-flash",
                   })
                   
+                  // Clean query - remove any site restrictions that might be added by system prompt
+                  let cleanQuery = query
+                    .replace(/\s*site:[^\s]+/g, '') // Remove site: restrictions
+                    .replace(/\s*OR\s*site:[^\s]+/g, '') // Remove OR site: restrictions
+                    .replace(/\s+/g, ' ') // Clean up multiple spaces
+                    .trim()
+                  
+                  console.log(`Original query: ${query}`)
+                  console.log(`Clean query: ${cleanQuery}`)
+                  
                   const result = await model.generateContent({
                     contents: [
                       {
                         role: "user",
                         parts: [
                           {
-                            text: `Find and summarize: ${query}. Cite sources.`,
+                            text: `Search for: ${cleanQuery}. Find comprehensive information from all available sources including news sites, official websites, forums, and other relevant web content. Do not limit to specific domains.`,
                           },
                         ],
                       },
@@ -245,9 +281,12 @@ export async function POST(req: Request) {
                   const gm: any = (response as any).candidates?.[0]?.groundingMetadata
                   const sources = extractRealSources(gm, responseText)
                   
+                  console.log(`Found ${sources.length} sources for query: ${cleanQuery}`)
+                  
                   // Return sources in the format expected by the AI SDK
                   return {
-                    sources: sources.slice(0, maxResults || 3)
+                    sources: sources.slice(0, maxResults || 5),
+                    summary: responseText
                   }
                 }
                 return {

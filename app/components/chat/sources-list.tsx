@@ -148,7 +148,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                      (currentFallbackIndex.get(source.url) || 0) >= (faviconFallbacks.get(source.url)?.length || 0))
 
                   return (
-                    <li key={source.id} className="flex items-center text-sm">
+                    <li key={source.id || source.url || Math.random()} className="flex items-center text-sm">
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <a
                           href={addUTM(source.url)}

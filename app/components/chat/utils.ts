@@ -34,8 +34,8 @@ export const getFavicon = (url: string | null) => {
       return null
     }
     
-    // Try DuckDuckGo which is more reliable for government sites
-    return `https://icons.duckduckgo.com/ip3/${domain}.ico`
+    // Use a simple, reliable favicon service
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
   } catch {
     // No need to log errors for invalid URLs
     return null
@@ -59,11 +59,11 @@ export const getFaviconFallback = (url: string | null) => {
       return null
     }
     
-    // Return array of fallback options
+    // Simple fallback options that work better
     return [
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=16`,
       `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-      `https://favicon.io/favicon/${domain}/32x32.png`
+      `https://${domain}/favicon.ico`
     ]
   } catch {
     return null
