@@ -26,6 +26,115 @@ type ChatRequest = {
   message_group_id?: string
 }
 
+// Helper function to extract real URLs from Google's grounding metadata
+function extractRealSources(groundingMetadata: any, responseText: string) {
+  if (!groundingMetadata?.groundingChunks) return []
+  
+  const sources = []
+  
+  for (const chunk of groundingMetadata.groundingChunks) {
+    if (!chunk?.web) continue
+    
+    const web = chunk.web
+    let url = web.uri || web.url || ""
+    let title = web.title || web.site || ""
+    let snippet = web.snippet || ""
+    
+    // Skip if no URL or title
+    if (!url || !title) continue
+    
+    // Handle Google redirect URLs - extract real URLs from response text
+    if (url.includes('vertexaisearch.cloud.google.com/grounding-api-redirect/')) {
+      // Try to find real URLs in the response text that match the title
+      const urlMatches = responseText.match(/https?:\/\/[^\s\)\]\}\.,]+/g) || []
+      
+      // Find URLs that match the domain from the title
+      let realUrl = null
+      
+      // First, try to find URLs that match the title domain
+      if (title) {
+        const titleDomain = title.toLowerCase().replace(/[^a-z0-9.-]/g, '')
+        realUrl = urlMatches.find(u => {
+          try {
+            const urlObj = new URL(u)
+            return urlObj.hostname.toLowerCase().includes(titleDomain) ||
+                   titleDomain.includes(urlObj.hostname.toLowerCase())
+          } catch {
+            return false
+          }
+        })
+      }
+      
+      // If no domain match, try to find any valid non-Google URL
+      if (!realUrl) {
+        realUrl = urlMatches.find(u => {
+          try {
+            const urlObj = new URL(u)
+            return !urlObj.hostname.includes('google.com') && 
+                   !urlObj.hostname.includes('vertexai') &&
+                   urlObj.hostname.includes('.')
+          } catch {
+            return false
+          }
+        })
+      }
+      
+      // If still no match, try to construct from common Ukrainian domains
+      if (!realUrl && title) {
+        const commonDomains = [
+          'zakon.rada.gov.ua', 'reyestr.court.gov.ua', 'ccu.gov.ua', 
+          'kmu.gov.ua', 'rada.gov.ua', 'nbu.gov.ua', 'tax.gov.ua',
+          'minjust.gov.ua', 'diia.gov.ua', 'novaposhta.ua', 'ukrposhta.ua',
+          'wikipedia.org', 'ukrinform.ua', 'unian.ua', 'interfax.ua'
+        ]
+        
+        for (const domain of commonDomains) {
+          if (title.toLowerCase().includes(domain.replace(/[^a-z0-9.-]/g, ''))) {
+            realUrl = `https://${domain}`
+            break
+          }
+        }
+      }
+      
+      if (realUrl) {
+        url = realUrl
+      } else {
+        // Skip this source if we can't find a real URL
+        continue
+      }
+    }
+    
+    // Clean up title (remove domain suffixes and clean formatting)
+    if (title) {
+      // Remove domain suffixes
+      if (title.includes('.')) {
+        title = title.split('.')[0]
+      }
+      // Clean up formatting
+      title = title.charAt(0).toUpperCase() + title.slice(1)
+      title = title.replace(/[^\w\s-]/g, '').trim()
+    }
+    
+    // Validate final URL
+    try {
+      const urlObj = new URL(url)
+      if (!urlObj.hostname || urlObj.hostname.includes('google.com') || urlObj.hostname.includes('vertexai')) {
+        continue // Skip invalid or Google URLs
+      }
+    } catch {
+      continue // Skip invalid URLs
+    }
+    
+    sources.push({
+      title: title || "Unknown Source",
+      url: url,
+      snippet: snippet,
+    })
+  }
+  
+  return sources
+}
+
 export async function POST(req: Request) {
   try {
     const {
@@ -106,7 +215,7 @@ export async function POST(req: Request) {
                 process.env.GEMINI_API_KEY
               try {
                 if (googleKey) {
-                  // Prefer Google Generative AI with Search grounding (no extra APIs)
+                  // Use Google Generative AI with Search grounding
                   const { GoogleGenerativeAI } = await import(
                     "@google/generative-ai"
                   )
@@ -114,6 +223,7 @@ export async function POST(req: Request) {
                   const model = ai.getGenerativeModel({
                     model: "gemini-2.5-flash",
                   })
+                  
                   const result = await model.generateContent({
                     contents: [
                       {
@@ -127,80 +237,17 @@ export async function POST(req: Request) {
                     ],
                     tools: [{ googleSearch: {} }],
                   } as any)
-                  const response = await result.response
-                  // Extract sources from grounding metadata if present
-                  const gm: any = (response as any).candidates?.[0]?.groundingMetadata
-                  const sources =
-                    gm?.groundingChunks
-                      ?.map((c: any) => c?.web)
-                      .filter((w: any) => w && (w.uri || w.url)) || []
                   
-                  // Process sources to extract real URLs and clean up data
-                  const processedSources = sources.map((w: any) => {
-                    let url = w.uri || w.url || ""
-                    let title = w.title || w.site || ""
-                    
-                                         // Extract real URL from Google's grounding redirect if present
-                     if (url.includes('vertexaisearch.cloud.google.com/grounding-api-redirect/')) {
-                       // Try to extract the original URL from the response text
-                       const responseText = response.text()
-                       const urlMatch = responseText.match(/https?:\/\/[^\s]+/g)
-                       if (urlMatch && urlMatch.length > 0) {
-                         // Find a URL that matches the domain from the title
-                         const domainMatch = urlMatch.find(u => {
-                           if (!title) return false
-                           const domain = title.toLowerCase()
-                           return u.toLowerCase().includes(domain.replace(/[^a-z0-9.-]/g, ''))
-                         })
-                         if (domainMatch) {
-                           url = domainMatch
-                         } else {
-                           // If no domain match, try to find any valid URL that's not a Google redirect
-                           const validUrl = urlMatch.find(u => 
-                             !u.includes('google.com') && 
-                             !u.includes('vertexai') &&
-                             u.includes('http')
-                           )
-                           if (validUrl) {
-                             url = validUrl
-                           }
-                         }
-                       }
-                     }
-                     
-                     // Additional fallback: if we still have a Google redirect URL, try to construct a real URL from the title
-                     if (url.includes('vertexaisearch.cloud.google.com/grounding-api-redirect/') && title) {
-                       // Try to construct a real URL from common domains
-                       const commonDomains = [
-                         'zakon.rada.gov.ua', 'reyestr.court.gov.ua', 'ccu.gov.ua', 
-                         'kmu.gov.ua', 'rada.gov.ua', 'nbu.gov.ua', 'tax.gov.ua',
-                         'minjust.gov.ua', 'diia.gov.ua', 'novaposhta.ua', 'ukrposhta.ua'
-                       ]
-                       
-                       for (const domain of commonDomains) {
-                         if (title.toLowerCase().includes(domain.replace(/[^a-z0-9.-]/g, ''))) {
-                           url = `https://${domain}`
-                           break
-                         }
-                       }
-                     }
-                    
-                    // Clean up title (remove domain suffixes)
-                    if (title && title.includes('.')) {
-                      title = title.split('.')[0]
-                      title = title.charAt(0).toUpperCase() + title.slice(1)
-                    }
-                    
-                    return {
-                      title: title || "Unknown Source",
-                      url: url,
-                      snippet: w.snippet || "",
-                    }
-                  }).filter((s: any) => s.url && s.url !== "")
+                  const response = await result.response
+                  const responseText = response.text()
+                  
+                  // Extract sources from grounding metadata
+                  const gm: any = (response as any).candidates?.[0]?.groundingMetadata
+                  const sources = extractRealSources(gm, responseText)
                   
                   // Return sources in the format expected by the AI SDK
                   return {
-                    sources: processedSources
+                    sources: sources.slice(0, maxResults || 3)
                   }
                 }
                 return {
