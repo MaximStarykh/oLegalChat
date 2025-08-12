@@ -47,21 +47,46 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Try to insert user only if not exists
-    const { error: insertError } = await supabaseAdmin.from("users").insert({
-      id: user.id,
-      email: user.email,
-      created_at: new Date().toISOString(),
-      message_count: 0,
-      premium: false,
-      favorite_models: [MODEL_DEFAULT],
-    })
+    const { data: existingUser, error: fetchError } = await supabaseAdmin
+      .from("users")
+      .select("favorite_models")
+      .eq("id", user.id)
+      .single()
 
-    if (insertError && insertError.code !== "23505") {
-      console.error("Error inserting user:", insertError)
+    if (fetchError && fetchError.code !== "PGRST116") {
+      console.error("Error fetching user:", fetchError)
+    }
+
+    if (!existingUser) {
+      const { error: insertError } = await supabaseAdmin
+        .from("users")
+        .insert({
+          id: user.id,
+          email: user.email,
+          created_at: new Date().toISOString(),
+          message_count: 0,
+          premium: false,
+          favorite_models: [MODEL_DEFAULT],
+        })
+
+      if (insertError) {
+        console.error("Error inserting user:", insertError)
+      }
+    } else if (
+      !existingUser.favorite_models ||
+      existingUser.favorite_models.length === 0
+    ) {
+      const { error: updateError } = await supabaseAdmin
+        .from("users")
+        .update({ favorite_models: [MODEL_DEFAULT] })
+        .eq("id", user.id)
+
+      if (updateError) {
+        console.error("Error setting default model:", updateError)
+      }
     }
   } catch (err) {
-    console.error("Unexpected user insert error:", err)
+    console.error("Unexpected user upsert error:", err)
   }
 
   const host = request.headers.get("host")

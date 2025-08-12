@@ -1,0 +1,1 @@
+- ensure logged-in users default to Gemini 2.5 Flash model by setting `favorite_models` if missing

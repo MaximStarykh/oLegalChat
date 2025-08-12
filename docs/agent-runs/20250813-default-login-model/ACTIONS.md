@@ -1,0 +1,3 @@
+- Created plan and run folder.
+- Updated `app/auth/callback/route.ts` to ensure `favorite_models` defaults to `[MODEL_DEFAULT]` for new or existing users without preferences.
+- Ran `npm install`, `npm run type-check`, `npm run lint`, `npm run test`, `npm run test:e2e`, and `npm run build`.

@@ -1,0 +1,6 @@
+- `npm install`
+- `npm run type-check`
+- `npm run lint` *(fails: unused vars, unexpected any, etc.)*
+- `npm run test` *(fails: ESM-only modules cannot be required)*
+- `npm run test:e2e` *(missing script)*
+- `npm run build`
