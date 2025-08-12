@@ -325,38 +325,6 @@ Use a single-file log per run.
   ```
 
 * **Purpose:** Transparent, verifiable context for each iteration; keeps PRs concise.
-
----
-
-## 15) Run logs & context memory (required)
-
-> Goal: make agents more autonomous while preserving **transparent, verifiable context** for each iteration.
-
-* **Location:** `docs/agent-runs/YYYYMMDD-<task-slug>/` (UTC date, kebab‑case slug). Create if missing.
-* **Always commit** the run folder with your code changes.
-* **Contents (minimum):**
-
-  * `PLAN.md` — planning document (see §16 template).
-  * `ACTIONS.md` — chronological actions executed (commands, files touched, rationale per step).
-  * `CHECKS.md` — checklist/table of validations you ran (see template), with citations to logs.
-  * `DECISIONS.md` — major decisions, alternatives considered, trade‑offs, links to code lines.
-  * `DIFF.md` — human‑readable summary of changes (link to files and PR summary §11).
-  * `EVIDENCE/` — optional folder with short text snippets of terminal/test outputs or screenshots.
-
-### 15.1 `CHECKS.md` template (copy/paste)
-
-```md
-# Checks & Verification
-
-| Check | Command | Result | Evidence |
-|---|---|---|---|
-| Install deps | `$PM install` | ✅/❌ | <terminal‑citation> |
-| Typecheck | `$PM run -s typecheck` | ✅/❌ | <terminal‑citation> |
-| Lint | `$PM run -s lint` | ✅/❌ | <terminal‑citation> |
-| Unit tests | `$PM run -s test:unit` | ✅/❌ | <terminal‑citation> |
-| E2E (if any) | `$PM run -s test:e2e` | ✅/❌ | <terminal‑citation> |
-| Build | `$PM run -s build` | ✅/❌ | <terminal‑citation> |
-| Security review | Manual checklist §9 | ✅/❌ | notes |
 ```
 
 ### 15.2 `ACTIONS.md` template

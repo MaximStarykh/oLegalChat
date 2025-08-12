@@ -16,7 +16,7 @@ describe("/api/update-chat-model", () => {
     const res = await POST(
       new Request("http://localhost", {
         method: "POST",
-        body: JSON.stringify({ chatId: "c1", model: "gemini-1.5-flash-002" }),
+        body: JSON.stringify({ chatId: "c1", model: "gemini-2.5-flash" }),
       })
     )
     expect(res.status).toBe(200)

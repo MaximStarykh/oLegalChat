@@ -26,7 +26,7 @@ describe("/api/chat POST", () => {
     vi.spyOn(chatApiModule, "validateAndTrackUsage").mockResolvedValue(null as any)
     vi.spyOn(modelsModule, "getAllModels").mockResolvedValue([
       {
-        id: "gemini-1.5-flash-002",
+        id: "gemini-2.5-flash",
         apiSdk: vi.fn(() => ({ id: "providerModel" })),
       },
     ] as any)
@@ -39,7 +39,7 @@ describe("/api/chat POST", () => {
         messages: [{ role: "user", content: "hi" }],
         chatId: "c1",
         userId: "u1",
-        model: "gemini-1.5-flash-002",
+        model: "gemini-2.5-flash",
         isAuthenticated: false,
         systemPrompt: "",
         enableSearch: true,

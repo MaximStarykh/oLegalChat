@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { getModelInfo } from "@/lib/models"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
-import { ArrowUpIcon, StopIcon } from "@phosphor-icons/react"
+import { ArrowUpIcon, BrainIcon, StopIcon } from "@phosphor-icons/react"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { PromptSystem } from "../suggestions/prompt-system"
 import { ButtonFileUpload } from "./button-file-upload"
@@ -205,14 +205,16 @@ export function ChatInput({
                   isAuthenticated={isUserAuthenticated}
                 />
               ) : null}
-              {/* Reasoning toggle */}
+              {/* Think (reasoning) toggle - temporarily hidden
               <Button
                 variant="secondary"
                 className={"border-border dark:bg-secondary rounded-full border bg-transparent"}
                 onClick={() => setShowReasoning(!preferences.showReasoning)}
               >
-                {preferences.showReasoning ? "Reasoning: On" : "Reasoning: Off"}
+                <BrainIcon className="size-5" />
+                {preferences.showReasoning ? "Think: On" : "Think: Off"}
               </Button>
+              */}
             </div>
             <PromptInputAction
               tooltip={status === "streaming" ? "Stop" : "Send"}

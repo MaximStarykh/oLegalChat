@@ -16,7 +16,7 @@ function makeSupabase(overrides?: any) {
 describe("lib/usage", () => {
   it("allows free models for guests via checkUsageByModel", async () => {
     const supabase = makeSupabase()
-    const result = await checkUsageByModel(supabase, "u1", "gemini-1.5-flash-002", false)
+    const result = await checkUsageByModel(supabase, "u1", "gemini-2.5-flash", false)
     expect(result).toBeTruthy()
   })
 })

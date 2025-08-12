@@ -26,15 +26,15 @@ describe("MessageAssistant", () => {
         hiddenModels: [],
       })
     )
-    const parts: any = [{ type: "reasoning", reasoning: "Chain of thought" }]
+    const parts = [{ type: "reasoning", reasoning: "Chain of thought" }] as unknown as any
     renderWithPrefs(
       <MessageAssistant messageId="m1" parts={parts} status="ready">
         Answer
       </MessageAssistant>,
       { showReasoning: true }
     )
-    // Reasoning component label should be present
-    expect(screen.getByText(/Reasoning/i)).toBeInTheDocument()
+    // Think (reasoning) component label should be present
+    expect(screen.getByText(/Think/i)).toBeInTheDocument()
   })
 
   it("does not show reasoning when preference disabled", () => {
@@ -50,7 +50,7 @@ describe("MessageAssistant", () => {
         hiddenModels: [],
       })
     )
-    const parts: any = [{ type: "reasoning", reasoning: "Hidden" }]
+    const parts = [{ type: "reasoning", reasoning: "Hidden" }] as unknown as any
     renderWithPrefs(
       <MessageAssistant messageId="m1" parts={parts} status="ready">
         Answer
@@ -61,11 +61,11 @@ describe("MessageAssistant", () => {
   })
 
   it("shows 'Searching the web…' when webSearch tool call is active", () => {
-    const parts: any = [
+    const parts = [
       { type: "tool-invocation", toolInvocation: { toolName: "webSearch", state: "call" } },
-    ]
+    ] as unknown as any
     renderWithPrefs(
-      <MessageAssistant messageId="m1" parts={parts} status="streaming" children="" />,
+      <MessageAssistant messageId="m1" parts={parts} status="streaming">{""}</MessageAssistant>,
       { showReasoning: false }
     )
     expect(screen.getByText(/Searching the web/i)).toBeInTheDocument()

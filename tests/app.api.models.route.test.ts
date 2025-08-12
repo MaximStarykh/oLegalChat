@@ -5,14 +5,14 @@ import { GET, POST } from "@/app/api/models/route"
 describe("/api/models route", () => {
   it("GET returns models with accessible=true", async () => {
     const mockModels = [
-      { id: "gemini-1.5-flash-002", providerId: "google" },
-    ] as any
+      { id: "gemini-2.5-flash", providerId: "google" },
+    ] as unknown as any
     const spy = vi.spyOn(modelsModule, "getAllModels").mockResolvedValue(mockModels)
 
     const res = await GET()
     expect(res.status).toBe(200)
     const json = JSON.parse(await res.text())
-    expect(json.models).toEqual([{ id: "gemini-1.5-flash-002", providerId: "google", accessible: true }])
+    expect(json.models).toEqual([{ id: "gemini-2.5-flash", providerId: "google", accessible: true }])
     spy.mockRestore()
   })
 
@@ -20,7 +20,7 @@ describe("/api/models route", () => {
     const spyRefresh = vi.spyOn(modelsModule, "refreshModelsCache").mockImplementation(() => {})
     const spyAll = vi
       .spyOn(modelsModule, "getAllModels")
-      .mockResolvedValue([{ id: "gemini-1.5-flash-002" }] as any)
+      .mockResolvedValue([{ id: "gemini-2.5-flash" }] as any)
     const res = await POST()
     expect(res.status).toBe(200)
     const json = await res.json()

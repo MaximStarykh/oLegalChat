@@ -29,10 +29,13 @@ export async function validateAndTrackUsage({
       )
     }
   } else {
-    // For authenticated users, check API key requirements
+    // For authenticated users, allow all Google models regardless of BYOK
     const provider = getProviderForModel(model)
 
-    if (provider !== "ollama") {
+    // Always allow Gemini 2.5 Flash regardless of provider or API key
+    if (model === "gemini-2.5-flash") {
+      // Allow access to Gemini 2.5 Flash
+    } else if (provider !== "google" && provider !== "ollama") {
       const userApiKey = await getUserKey(
         userId,
         provider as ProviderWithoutOllama
@@ -76,8 +79,6 @@ export async function logUserMessage({
   chatId,
   content,
   attachments,
-  model,
-  isAuthenticated,
   message_group_id,
 }: LogUserMessageParams): Promise<void> {
   if (!supabase) return
@@ -101,17 +102,10 @@ export async function storeAssistantMessage({
   chatId,
   messages,
   message_group_id,
-  model,
 }: StoreAssistantMessageParams): Promise<void> {
   if (!supabase) return
   try {
-    await saveFinalAssistantMessage(
-      supabase,
-      chatId,
-      messages,
-      message_group_id,
-      model
-    )
+    await saveFinalAssistantMessage(supabase, chatId, messages, message_group_id)
   } catch (err) {
     console.error("Failed to save assistant messages:", err)
   }

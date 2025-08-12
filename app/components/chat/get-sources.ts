@@ -23,6 +23,11 @@ export function getSources(parts: MessageAISDK["parts"]) {
           return result.result.flatMap((item: { citations?: unknown[] }) => item.citations || [])
         }
 
+        // Handle webSearch tool results
+        if (part.toolInvocation.toolName === "webSearch" && result?.sources) {
+          return result.sources
+        }
+
         return Array.isArray(result) ? result.flat() : result
       }
 

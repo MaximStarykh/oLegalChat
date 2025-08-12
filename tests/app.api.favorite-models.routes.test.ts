@@ -4,7 +4,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: { id: "u1" } }, error: null }) },
     from: () => ({
-      update: () => ({ eq: () => ({ select: () => ({ single: async () => ({ data: { favorite_models: ["gemini-1.5-flash-002"] }, error: null }) }) }) }),
+      update: () => ({ eq: () => ({ select: () => ({ single: async () => ({ data: { favorite_models: ["gemini-2.5-flash"] }, error: null }) }) }) }),
       select: () => ({ eq: () => ({ single: async () => ({ data: { favorite_models: [] }, error: null }) }) }),
     }),
   }),

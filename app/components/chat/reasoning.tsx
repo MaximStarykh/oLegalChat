@@ -1,6 +1,6 @@
 import { Markdown } from "@/components/prompt-kit/markdown"
 import { cn } from "@/lib/utils"
-import { CaretDownIcon } from "@phosphor-icons/react"
+import { BrainIcon, CaretDownIcon } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useState } from "react"
 
@@ -31,7 +31,8 @@ export function Reasoning({ reasoning, isStreaming }: ReasoningProps) {
         onClick={() => setIsExpanded(!isExpanded)}
         type="button"
       >
-        <span>Reasoning</span>
+        <BrainIcon className="size-3" />
+        <span>Think</span>
         <CaretDownIcon
           className={cn(
             "size-3 transition-transform",

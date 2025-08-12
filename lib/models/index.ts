@@ -2,8 +2,7 @@ import { FREE_MODELS_IDS } from "../config"
 import { geminiModels } from "./data/gemini"
 import { ModelConfig } from "./types"
 
-// Static models (always available)
-// Restricted to Gemini models only per configuration
+// Static models (always available): only the whitelisted Gemini models
 const STATIC_MODELS: ModelConfig[] = [...geminiModels]
 
 // Dynamic models cache

@@ -28,9 +28,36 @@ export const getFavicon = (url: string | null) => {
     }
 
     const domain = urlObj.hostname
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+    
+    // Try multiple favicon services for better reliability
+    // Start with DuckDuckGo which is more reliable for government sites
+    return `https://icons.duckduckgo.com/ip3/${domain}.ico`
   } catch {
     // No need to log errors for invalid URLs
+    return null
+  }
+}
+
+// Alternative favicon URLs for fallback
+export const getFaviconFallback = (url: string | null) => {
+  if (!url) return null
+
+  try {
+    const urlObj = new URL(url)
+    if (!["http:", "https:"].includes(urlObj.protocol)) {
+      return null
+    }
+
+    const domain = urlObj.hostname
+    
+    // Return array of fallback options
+    return [
+      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+      `https://favicon.io/favicon/${domain}/32x32.png`,
+      `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=32`
+    ]
+  } catch {
     return null
   }
 }

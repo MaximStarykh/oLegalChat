@@ -6,7 +6,7 @@ import { CaretDown, Link } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "motion/react"
 import Image from "next/image"
 import { useState } from "react"
-import { addUTM, formatUrl, getFavicon } from "./utils"
+import { addUTM, formatUrl, getFavicon, getFaviconFallback } from "./utils"
 
 type SourcesListProps = {
   sources: SourceUIPart["source"][]
@@ -22,9 +22,27 @@ const TRANSITION = {
 export function SourcesList({ sources, className }: SourcesListProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [failedFavicons, setFailedFavicons] = useState<Set<string>>(new Set())
+  const [faviconFallbacks, setFaviconFallbacks] = useState<Map<string, string[]>>(new Map())
 
   const handleFaviconError = (url: string) => {
     setFailedFavicons((prev) => new Set(prev).add(url))
+    
+    // Get fallback favicon URLs
+    const fallbacks = getFaviconFallback(url)
+    if (fallbacks) {
+      setFaviconFallbacks((prev) => new Map(prev).set(url, fallbacks))
+    }
+  }
+
+  const getFaviconUrl = (url: string) => {
+    if (failedFavicons.has(url)) {
+      const fallbacks = faviconFallbacks.get(url)
+      if (fallbacks && fallbacks.length > 0) {
+        // Return the first fallback that hasn't failed
+        return fallbacks[0]
+      }
+    }
+    return getFavicon(url)
   }
 
   return (
@@ -39,9 +57,9 @@ export function SourcesList({ sources, className }: SourcesListProps) {
             Sources
             <div className="flex -space-x-1">
               {sources?.map((source, index) => {
-                const faviconUrl = getFavicon(source.url)
+                const faviconUrl = getFaviconUrl(source.url)
                 const showFallback =
-                  !faviconUrl || failedFavicons.has(source.url)
+                  !faviconUrl || (failedFavicons.has(source.url) && !faviconFallbacks.get(source.url)?.length)
 
                 return showFallback ? (
                   <div
@@ -86,9 +104,9 @@ export function SourcesList({ sources, className }: SourcesListProps) {
             >
               <ul className="space-y-2 px-3 pt-3 pb-3">
                 {sources.map((source) => {
-                  const faviconUrl = getFavicon(source.url)
+                  const faviconUrl = getFaviconUrl(source.url)
                   const showFallback =
-                    !faviconUrl || failedFavicons.has(source.url)
+                    !faviconUrl || (failedFavicons.has(source.url) && !faviconFallbacks.get(source.url)?.length)
 
                   return (
                     <li key={source.id} className="flex items-center text-sm">

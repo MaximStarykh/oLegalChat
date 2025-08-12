@@ -49,7 +49,7 @@ export function SubMenu({ hoveredModelData }: SubMenuProps) {
             {hoveredModelData.reasoning && (
               <div className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-800 dark:text-amber-100">
                 <BrainIcon className="size-3" />
-                <span>Reasoning</span>
+                <span>Think</span>
               </div>
             )}
 

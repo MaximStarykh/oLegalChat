@@ -13,8 +13,6 @@ dist/
 coverage/
 
 # Env files
-.env*
-!.env.example
 
 # OS
 .DS_Store
@@ -29,3 +27,5 @@ pnpm-debug.log*
 # Editor
 .vscode/
 .idea/
+.vercel
+node_modules
