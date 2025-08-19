@@ -1,0 +1,6 @@
+- `npm install`: completed.
+- `npm run typecheck` (missing script) then `npx tsc --noEmit`: passed.
+- `npm run lint` and `npx eslint .`: failed with multiple lint errors.
+- `npm run test`: failed (ESM dependency error).
+- `npm run test:e2e` not found, `npx playwright test` canceled (requires install).
+- `npm run build`: passed.

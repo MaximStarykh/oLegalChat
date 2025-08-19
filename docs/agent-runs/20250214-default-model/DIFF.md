@@ -1,0 +1,2 @@
+- Added validation in `useModel` to ensure chat and favorite models exist; fall back to `MODEL_DEFAULT` when invalid.
+- Added unit test verifying fallback to default model when favorite model is unavailable.

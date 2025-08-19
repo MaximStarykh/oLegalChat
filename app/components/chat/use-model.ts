@@ -1,6 +1,7 @@
 import { toast } from "@/components/ui/toast"
 import { Chats } from "@/lib/chat-store/types"
 import { MODEL_DEFAULT } from "@/lib/config"
+import { getModelInfo } from "@/lib/models"
 import type { UserProfile } from "@/lib/user/types"
 import { useCallback, useState } from "react"
 
@@ -26,10 +27,16 @@ export function useModel({
   updateChatModel,
   chatId,
 }: UseModelProps) {
-  // Calculate the effective model based on priority: chat model > first favorite model > default
+  // Calculate the effective model ensuring the model exists in our registry
   const getEffectiveModel = useCallback(() => {
+    const chatModel = currentChat?.model
+    if (chatModel && getModelInfo(chatModel)) return chatModel
+
     const firstFavoriteModel = user?.favorite_models?.[0]
-    return currentChat?.model || firstFavoriteModel || MODEL_DEFAULT
+    if (firstFavoriteModel && getModelInfo(firstFavoriteModel))
+      return firstFavoriteModel
+
+    return MODEL_DEFAULT
   }, [currentChat?.model, user?.favorite_models])
 
   // Use local state only for temporary overrides, derive base value from props

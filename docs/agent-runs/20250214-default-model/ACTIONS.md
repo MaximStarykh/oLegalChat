@@ -1,0 +1,4 @@
+- Reviewed repository structure and AGENTS instructions.
+- Investigated model selection logic; determined `useModel` lacked validation of favorites.
+- Updated `useModel` to validate chat and favorite models against registry and fallback to default.
+- Added regression test ensuring fallback to `MODEL_DEFAULT` when user's favorite model is unavailable.
