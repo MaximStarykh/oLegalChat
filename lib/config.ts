@@ -17,10 +17,12 @@ export const DAILY_LIMIT_PRO_MODELS = 150
 // Only Gemini 2.5 Flash available
 export const NON_AUTH_ALLOWED_MODELS = [
   "gemini-2.5-flash",
+  "gemini-2.5-pro",
 ]
 
 export const FREE_MODELS_IDS = [
   "gemini-2.5-flash",
+  "gemini-2.5-pro",
 ]
 
 // Default model is always Gemini 2.5 Flash

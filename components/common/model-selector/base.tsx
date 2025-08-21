@@ -94,10 +94,6 @@ export function ModelSelector({
           selectedModelId === model.id && "bg-accent"
         )}
         onClick={() => {
-          // Only allow selection if it's Gemini 2.5 Flash
-          if (model.id !== "gemini-2.5-flash") {
-            return
-          }
           if (isLocked) {
             setSelectedProModel(model.id)
             setIsProDialogOpen(true)
@@ -133,7 +129,7 @@ export function ModelSelector({
 
   // Only show Gemini 2.5 Flash
   const filteredModels = filterAndSortModels(
-    models.filter(model => model.id === "gemini-2.5-flash"),
+    models,
     favoriteModels || [],
     searchQuery,
     isModelHidden

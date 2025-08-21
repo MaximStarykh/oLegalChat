@@ -15,7 +15,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useUser } from "@/lib/user-store/provider"
-import { GithubLogoIcon } from "@phosphor-icons/react"
 import { useState } from "react"
 import { AppInfoTrigger } from "./app-info/app-info-trigger"
 import { FeedbackTrigger } from "./feedback/feedback-trigger"
@@ -70,9 +69,7 @@ export function UserMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <SettingsTrigger onOpenChange={handleSettingsOpenChange} />
-        <FeedbackTrigger />
-        <AppInfoTrigger />
-        <DropdownMenuSeparator />
+        {/* Keep only Settings and X/Twitter */}
         <DropdownMenuItem asChild>
           <a
             href="https://x.com/oLegaldotchat"
@@ -82,17 +79,6 @@ export function UserMenu() {
           >
             <XIcon className="size-4 p-0.5" />
             <span>@oLegaldotchat</span>
-          </a>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a
-            href="https://github.com/ibelick/oLegal"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2"
-          >
-            <GithubLogoIcon className="size-4" />
-            <span>GitHub</span>
           </a>
         </DropdownMenuItem>
       </DropdownMenuContent>

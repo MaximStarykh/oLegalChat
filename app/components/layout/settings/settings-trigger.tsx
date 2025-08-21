@@ -40,7 +40,7 @@ export function SettingsTrigger({ onOpenChange }: SettingsTriggerProps) {
       <Drawer open={open} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent>
-          <SettingsContent isDrawer />
+          <SettingsContent isDrawer combined />
         </DrawerContent>
       </Drawer>
     )
@@ -53,7 +53,7 @@ export function SettingsTrigger({ onOpenChange }: SettingsTriggerProps) {
         <DialogHeader className="border-border border-b px-6 py-5">
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <SettingsContent />
+        <SettingsContent combined />
       </DialogContent>
     </Dialog>
   )

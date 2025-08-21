@@ -28,6 +28,31 @@ const geminiModels: ModelConfig[] = [
     apiSdk: (apiKey?: string, opts?: { enableSearch?: boolean }) =>
       openproviders("gemini-2.5-flash", opts as unknown as any, apiKey),
   },
+  {
+    id: "gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    provider: "Google",
+    providerId: "google",
+    modelFamily: "Gemini",
+    baseProviderId: "google",
+    description: "Most capable model for complex reasoning and analysis.",
+    tags: ["flagship", "multimodal", "reasoning"],
+    contextWindow: 1000000,
+    vision: true,
+    webSearch: true,
+    tools: true,
+    audio: true,
+    reasoning: true,
+    openSource: false,
+    speed: "Medium",
+    intelligence: "High",
+    website: "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
+    apiDocs: "https://ai.google.dev/api",
+    modelPage: "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
+    icon: "gemini",
+    apiSdk: (apiKey?: string, opts?: { enableSearch?: boolean }) =>
+      openproviders("gemini-2.5-pro", opts as unknown as any, apiKey),
+  },
 ]
 
 export { geminiModels }

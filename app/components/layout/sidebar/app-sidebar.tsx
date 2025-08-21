@@ -3,21 +3,9 @@
 import { groupChatsByDate } from "@/app/components/history/utils"
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  useSidebar,
-} from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarHeader, useSidebar } from "@/components/ui/sidebar"
 import { useChats } from "@/lib/chat-store/chats/provider"
-import {
-  ChatTeardropText,
-  GithubLogo,
-  MagnifyingGlass,
-  NotePencilIcon,
-  X,
-} from "@phosphor-icons/react"
+import { ChatTeardropText, MagnifyingGlass, NotePencilIcon, X } from "@phosphor-icons/react"
 import { useParams, useRouter } from "next/navigation"
 import { useMemo } from "react"
 import { HistoryTrigger } from "../../history/history-trigger"
@@ -105,7 +93,7 @@ export function AppSidebar() {
               ))}
             </div>
           ) : (
-            <div className="flex h-[calc(100vh-160px)] flex-col items-center justify-center">
+            <div className="flex h-full flex-col items-center justify-center">
               <ChatTeardropText
                 size={24}
                 className="text-muted-foreground mb-1 opacity-40"
@@ -118,26 +106,6 @@ export function AppSidebar() {
           )}
         </ScrollArea>
       </SidebarContent>
-      <SidebarFooter className="border-border/40 mb-2 border-t p-3">
-        <a
-          href="https://github.com/ibelick/oLegal"
-          className="hover:bg-muted flex items-center gap-2 rounded-md p-2"
-          target="_blank"
-          aria-label="Star the repo on GitHub"
-        >
-          <div className="rounded-full border p-1">
-            <GithubLogo className="size-4" />
-          </div>
-          <div className="flex flex-col">
-            <div className="text-sidebar-foreground text-sm font-medium">
-              oLegal is open source
-            </div>
-            <div className="text-sidebar-foreground/70 text-xs">
-              Star the repo on GitHub!
-            </div>
-          </div>
-        </a>
-      </SidebarFooter>
     </Sidebar>
   )
 }

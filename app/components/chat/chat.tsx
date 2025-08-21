@@ -15,6 +15,7 @@ import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
 import { redirect } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
+import { UpgradeButton } from "@/components/common/upgrade-button"
 import { useChatCore } from "./use-chat-core"
 import { useChatOperations } from "./use-chat-operations"
 import { useFileUpload } from "./use-file-upload"
@@ -242,6 +243,9 @@ export function Chat() {
             <h1 className="mb-6 text-3xl font-medium tracking-tight">
               What&apos;s on your mind?
             </h1>
+            <div className="mt-4 mb-3 flex w-full justify-center md:mb-2">
+              <UpgradeButton />
+            </div>
           </motion.div>
         ) : (
           <Conversation key="conversation" {...conversationProps} />
