@@ -3,7 +3,13 @@ import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 import { Attachment } from "@ai-sdk/ui-utils"
-import { Message as MessageAISDK, streamText, ToolSet } from "ai"
+import {
+  Message as MessageAISDK,
+  streamText,
+  ToolSet,
+  streamToResponse,
+  readableFromAsyncIterable,
+} from "ai"
 import { z } from "zod"
 import {
   incrementMessageCount,
@@ -12,6 +18,7 @@ import {
   validateAndTrackUsage,
 } from "./api"
 import { createErrorResponse, extractErrorMessage } from "./utils"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 
 export const maxDuration = 60
 
@@ -332,6 +339,50 @@ export async function POST(req: Request) {
           }
         },
       }
+    }
+
+    if (modelConfig.id === "gemini-2.5-pro") {
+      const googleKey =
+        process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+        process.env.GEMINI_API_KEY
+      if (!googleKey) {
+        throw new Error(
+          "Missing GOOGLE_GENERATIVE_AI_API_KEY or GEMINI_API_KEY"
+        )
+      }
+      const genAI = new GoogleGenerativeAI(googleKey)
+      const proModel = genAI.getGenerativeModel({
+        model: "gemini-2.5-pro",
+        systemInstruction: effectiveSystemPrompt,
+      })
+
+      const chat = proModel.startChat({
+        history: messages
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .map((m) => ({
+            role: m.role === "user" ? "user" : "model",
+            parts: [{ text: m.content }],
+          })),
+      })
+
+      const result = await chat.sendMessageStream(
+        messages[messages.length - 1].content
+      )
+
+      const stream = readableFromAsyncIterable(
+        (async function* () {
+          for await (const chunk of result.stream) {
+            if (chunk.text) {
+              yield {
+                type: "text-delta",
+                textDelta: chunk.text(),
+              }
+            }
+          }
+        })()
+      )
+
+      return new Response(stream)
     }
 
     const result = streamText({

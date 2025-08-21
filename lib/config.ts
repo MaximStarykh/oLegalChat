@@ -154,13 +154,6 @@ TODAY IS ${new Date().toLocaleDateString("uk-UA", {
         5.  Any time-sensitive legal news or developments.
     </mandatory_search_category>
 
-    <never_search_category>
-        <!-- When webSearch MUST NOT be used -->
-        The webSearch tool MUST NOT be used for:
-        1.  General, foundational legal concepts (e.g., "what is a contract?", "explain negligence"). Answer from existing knowledge.
-        2.  Purely hypothetical scenarios not tied to a specific, current legal norm.
-    </never_search_category>
-
     <sourcing_and_citation_protocol>
         <!-- Source Prioritization -->
         Information MUST be cross-checked. Official sources are the only acceptable basis for definitive statements. The hierarchy of priority is:
