@@ -7,7 +7,6 @@ export type UserPreferences = {
   showConversationPreviews: boolean
   multiModelEnabled: boolean
   showReasoning: boolean
-  hiddenModels: string[]
 }
 
 export const defaultPreferences: UserPreferences = {
@@ -17,7 +16,6 @@ export const defaultPreferences: UserPreferences = {
   showConversationPreviews: true,
   multiModelEnabled: false,
   showReasoning: false,
-  hiddenModels: [],
 }
 
 // Helper functions to convert between API format (snake_case) and frontend format (camelCase)
@@ -29,7 +27,6 @@ export function convertFromApiFormat(apiData: any): UserPreferences {
     showConversationPreviews: apiData.show_conversation_previews ?? true,
     multiModelEnabled: apiData.multi_model_enabled ?? false,
     showReasoning: apiData.show_reasoning ?? false,
-    hiddenModels: apiData.hidden_models || [],
   }
 }
 
@@ -46,7 +43,5 @@ export function convertToApiFormat(preferences: Partial<UserPreferences>) {
     apiData.multi_model_enabled = preferences.multiModelEnabled
   if (preferences.showReasoning !== undefined)
     apiData.show_reasoning = preferences.showReasoning
-  if (preferences.hiddenModels !== undefined)
-    apiData.hidden_models = preferences.hiddenModels
   return apiData
 }

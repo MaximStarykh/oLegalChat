@@ -31,11 +31,12 @@ import { PROVIDERS } from "@/lib/providers"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
 import {
-  CaretDownIcon,
-  MagnifyingGlassIcon,
-  StarIcon,
+  CaretDownIcon as PhosphorCaretDown,
+  MagnifyingGlassIcon as PhosphorMagnifyingGlass,
+  StarIcon as PhosphorStar,
+  IconProps,
 } from "@phosphor-icons/react"
-import { useRef, useState } from "react"
+import React, { useRef, useState } from "react"
 import { ProModelDialog } from "./pro-dialog"
 import { SubMenu } from "./sub-menu"
 
@@ -46,6 +47,12 @@ type ModelSelectorProps = {
   isUserAuthenticated?: boolean
 }
 
+const CaretDownIcon = (props: IconProps) => <PhosphorCaretDown {...props} />
+const MagnifyingGlassIcon = (props: IconProps) => (
+  <PhosphorMagnifyingGlass {...props} />
+)
+const StarIcon = (props: IconProps) => <PhosphorStar {...props} />
+
 export function ModelSelector({
   selectedModelId,
   setSelectedModelId,
@@ -53,9 +60,8 @@ export function ModelSelector({
   isUserAuthenticated = true,
 }: ModelSelectorProps) {
   const { models, isLoading: isLoadingModels, favoriteModels } = useModel()
-  const { isModelHidden } = useUserPreferences()
 
-  const currentModel = models.find((model) => model.id === selectedModelId)
+  const currentModel = models.find((model: ModelConfig) => model.id === selectedModelId)
   const currentProvider = PROVIDERS.find(
     (provider) => provider.id === currentModel?.icon
   )
@@ -75,9 +81,9 @@ export function ModelSelector({
     (e) => (e.key === "p" || e.key === "P") && e.metaKey && e.shiftKey,
     () => {
       if (isMobile) {
-        setIsDrawerOpen((prev) => !prev)
+        setIsDrawerOpen((prev: boolean) => !prev)
       } else {
-        setIsDropdownOpen((prev) => !prev)
+        setIsDropdownOpen((prev: boolean) => !prev)
       }
     }
   )
@@ -125,14 +131,13 @@ export function ModelSelector({
   }
 
   // Get the hovered model data
-  const hoveredModelData = models.find((model) => model.id === hoveredModel)
+  const hoveredModelData = models.find((model: ModelConfig) => model.id === hoveredModel)
 
   // Only show Gemini 2.5 Flash
   const filteredModels = filterAndSortModels(
     models,
     favoriteModels || [],
-    searchQuery,
-    isModelHidden
+    searchQuery
   )
 
   const trigger = (
@@ -209,7 +214,7 @@ export function ModelSelector({
                   className="pl-8"
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
                 />
               </div>
             </div>
@@ -254,7 +259,7 @@ export function ModelSelector({
       <Tooltip>
         <DropdownMenu
           open={isDropdownOpen}
-          onOpenChange={(open) => {
+          onOpenChange={(open: boolean) => {
             setIsDropdownOpen(open)
             if (!open) {
               setHoveredModel(null)
@@ -284,9 +289,9 @@ export function ModelSelector({
                   className="dark:bg-popover rounded-b-none border border-none pl-8 shadow-none focus-visible:ring-0"
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  onClick={(e) => e.stopPropagation()}
-                  onFocus={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
+                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                  onFocus={(e: React.FocusEvent) => e.stopPropagation()}
+                  onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
                 />
               </div>
             </div>

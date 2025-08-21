@@ -2,10 +2,10 @@
 
 import { cn } from "@/lib/utils"
 import type { SourceUIPart } from "@ai-sdk/ui-utils"
-import { CaretDown, Link } from "@phosphor-icons/react"
+import { CaretDown, IconProps, Link } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "motion/react"
 import Image from "next/image"
-import { useState, useCallback } from "react"
+import React, { useState, useCallback } from "react"
 import { addUTM, formatUrl, getFavicon, getFaviconFallback } from "./utils"
 
 type SourcesListProps = {
@@ -19,6 +19,9 @@ const TRANSITION = {
   bounce: 0,
 }
 
+const CaretDownIcon = (props: IconProps) => <CaretDown {...props} />
+const LinkIcon = (props: IconProps) => <Link {...props} />
+
 export function SourcesList({ sources, className }: SourcesListProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [failedFavicons, setFailedFavicons] = useState<Set<string>>(new Set())
@@ -26,14 +29,14 @@ export function SourcesList({ sources, className }: SourcesListProps) {
   const [currentFallbackIndex, setCurrentFallbackIndex] = useState<Map<string, number>>(new Map())
 
   const handleFaviconError = useCallback((url: string) => {
-    setFailedFavicons((prev) => new Set(prev).add(url))
+    setFailedFavicons((prev: Set<string>) => new Set(prev).add(url))
     
     // Get fallback favicon URLs if we haven't already
     if (!faviconFallbacks.has(url)) {
       const fallbacks = getFaviconFallback(url)
       if (fallbacks) {
-        setFaviconFallbacks((prev) => new Map(prev).set(url, fallbacks))
-        setCurrentFallbackIndex((prev) => new Map(prev).set(url, 0))
+        setFaviconFallbacks((prev: Map<string, string[]>) => new Map(prev).set(url, fallbacks))
+        setCurrentFallbackIndex((prev: Map<string, number>) => new Map(prev).set(url, 0))
       }
     }
   }, [faviconFallbacks])
@@ -61,10 +64,10 @@ export function SourcesList({ sources, className }: SourcesListProps) {
     
     if (fallbacks && currentIndex < fallbacks.length - 1) {
       // Try the next fallback
-      setCurrentFallbackIndex((prev) => new Map(prev).set(url, currentIndex + 1))
+      setCurrentFallbackIndex((prev: Map<string, number>) => new Map(prev).set(url, currentIndex + 1))
     } else {
       // All fallbacks failed, mark as completely failed
-      setFailedFavicons((prev) => new Set(prev).add(url))
+      setFailedFavicons((prev: Set<string>) => new Set(prev).add(url))
     }
   }, [currentFallbackIndex, faviconFallbacks])
 
@@ -94,7 +97,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
         onError={() => handleFallbackError(source.url)}
         onLoad={() => {
           // Clear any error state if image loads successfully
-          setFailedFavicons((prev) => {
+          setFailedFavicons((prev: Set<string>) => {
             const newSet = new Set(prev)
             newSet.delete(source.url)
             return newSet
@@ -123,7 +126,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
               )}
             </div>
           </div>
-          <CaretDown
+          <CaretDownIcon
             className={cn(
               "h-4 w-4 transition-transform",
               isExpanded ? "rotate-180 transform" : ""
@@ -131,13 +134,13 @@ export function SourcesList({ sources, className }: SourcesListProps) {
           />
         </button>
 
-        <AnimatePresence initial={false}>
+        <(AnimatePresence as any) initial={false}>
           {isExpanded && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={TRANSITION}
+              transition={TRANSITION as any}
               className="overflow-hidden"
             >
               <ul className="space-y-2 px-3 pt-3 pb-3">
@@ -168,7 +171,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                               onError={() => handleFallbackError(source.url)}
                               onLoad={() => {
                                 // Clear any error state if image loads successfully
-                                setFailedFavicons((prev) => {
+                                setFailedFavicons((prev: Set<string>) => {
                                   const newSet = new Set(prev)
                                   newSet.delete(source.url)
                                   return newSet
@@ -177,7 +180,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                             />
                           )}
                           <span className="truncate">{source.title}</span>
-                          <Link className="inline h-3 w-3 flex-shrink-0 opacity-70 transition-opacity group-hover:opacity-100" />
+                          <LinkIcon className="inline h-3 w-3 flex-shrink-0 opacity-70 transition-opacity group-hover:opacity-100" />
                         </a>
                         <div className="text-muted-foreground line-clamp-1 text-xs">
                           {formatUrl(source.url)}
@@ -189,7 +192,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
               </ul>
             </motion.div>
           )}
-        </AnimatePresence>
+        </(AnimatePresence as any)>
       </div>
     </div>
   )

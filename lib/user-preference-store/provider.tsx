@@ -28,8 +28,6 @@ interface UserPreferencesContextType {
   setShowConversationPreviews: (enabled: boolean) => void
   setMultiModelEnabled: (enabled: boolean) => void
   setShowReasoning: (enabled: boolean) => void
-  toggleModelVisibility: (modelId: string) => void
-  isModelHidden: (modelId: string) => boolean
   isLoading: boolean
 }
 
@@ -215,20 +213,6 @@ export function UserPreferencesProvider({
     updatePreferences({ showReasoning: enabled })
   }
 
-  const toggleModelVisibility = (modelId: string) => {
-    const currentHidden = preferences.hiddenModels || []
-    const isHidden = currentHidden.includes(modelId)
-    const newHidden = isHidden
-      ? currentHidden.filter((id) => id !== modelId)
-      : [...currentHidden, modelId]
-
-    updatePreferences({ hiddenModels: newHidden })
-  }
-
-  const isModelHidden = (modelId: string) => {
-    return (preferences.hiddenModels || []).includes(modelId)
-  }
-
   return (
     <UserPreferencesContext.Provider
       value={{
@@ -239,8 +223,6 @@ export function UserPreferencesProvider({
         setShowConversationPreviews,
         setMultiModelEnabled,
         setShowReasoning,
-        toggleModelVisibility,
-        isModelHidden,
         isLoading,
       }}
     >

@@ -6,17 +6,15 @@ import { ModelConfig } from "@/lib/models/types"
  * @param models - All available models
  * @param favoriteModels - Array of favorite model IDs
  * @param searchQuery - Search query to filter by model name
- * @param isModelHidden - Function to check if a model is hidden
  * @returns Filtered and sorted models
  */
 export function filterAndSortModels(
   models: ModelConfig[],
   favoriteModels: string[],
-  searchQuery: string,
-  isModelHidden: (modelId: string) => boolean
+  searchQuery: string
 ): ModelConfig[] {
   return models
-    .filter((model) => !isModelHidden(model.id))
+    .filter((model) => FREE_MODELS_IDS.includes(model.id))
     .filter((model) => {
       // If user has favorite models, only show favorites
       if (favoriteModels && favoriteModels.length > 0) {
