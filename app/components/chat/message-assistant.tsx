@@ -49,7 +49,16 @@ export function MessageAssistant({
   const toolInvocationParts = parts?.filter(
     (part) => part.type === "tool-invocation"
   )
-  const reasoningParts = parts?.find((part) => part.type === "reasoning")
+  const reasoningPart = parts?.find((part) => part.type === "reasoning") as
+    | (MessageAISDK["parts"] extends Array<infer P> ? P : never)
+    | undefined
+  const reasoningText = reasoningPart
+    ? ("reasoning" in reasoningPart
+        ? // @ts-expect-error - some providers use `reasoning`
+          (reasoningPart as any).reasoning
+        : // @ts-expect-error - AI SDK streams often use `text` for reasoning chunks
+          (reasoningPart as any).text) || ""
+    : ""
   const contentNullOrEmpty = children === null || children === ""
   const isLastStreaming = status === "streaming" && isLast
   const isSearching =
@@ -106,9 +115,9 @@ export function MessageAssistant({
         )}
         {...(isQuoteEnabled && { "data-message-id": messageId })}
       >
-        {preferences.showReasoning && reasoningParts && reasoningParts.reasoning && (
+        {preferences.showReasoning && reasoningPart && reasoningText && (
           <Reasoning
-            reasoning={reasoningParts.reasoning}
+            reasoning={reasoningText}
             isStreaming={status === "streaming"}
           />
         )}
