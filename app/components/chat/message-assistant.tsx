@@ -52,13 +52,15 @@ export function MessageAssistant({
   const reasoningPart = parts?.find((part) => part.type === "reasoning") as
     | (MessageAISDK["parts"] extends Array<infer P> ? P : never)
     | undefined
-  const reasoningText = reasoningPart
-    ? ("reasoning" in reasoningPart
-        ? // @ts-expect-error - some providers use `reasoning`
-          (reasoningPart as any).reasoning
-        : // @ts-expect-error - AI SDK streams often use `text` for reasoning chunks
-          (reasoningPart as any).text) || ""
-    : ""
+
+  const rp: any = reasoningPart || {}
+  const reasoningText: string =
+    typeof rp.reasoning === "string"
+      ? rp.reasoning
+      : typeof rp.text === "string"
+        ? rp.text
+        : ""
+
   const contentNullOrEmpty = children === null || children === ""
   const isLastStreaming = status === "streaming" && isLast
   const isSearching =
