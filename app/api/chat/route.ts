@@ -245,93 +245,104 @@ export async function POST(req: Request) {
         undefined
     }
 
-    const tools: ToolSet = enableSearch
-      ? {
-          webSearch: {
-            description:
-              "Search the web for current information. Use this tool to find recent news, articles, documents, and other web content. DO NOT restrict searches to specific sites unless explicitly requested by the user. Search broadly across all available sources.",
-            parameters: z.object({
-              query: z.string().min(3),
-              maxResults: z.number().int().min(1).max(10).default(5).optional(),
-            }),
-            execute: async ({ query, maxResults = 5 }) => {
-              const googleKey =
-                process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-                process.env.GEMINI_API_KEY
-              try {
-                if (googleKey) {
-                  // Use Google Generative AI with Search grounding
-                  const { GoogleGenerativeAI } = await import(
-                    "@google/generative-ai"
-                  )
-                  const ai = new GoogleGenerativeAI(googleKey)
-                  const model = ai.getGenerativeModel({
-                    model: "gemini-2.5-flash",
-                  })
-                  
-                  // Clean query - remove any site restrictions that might be added by system prompt
-                  const cleanQuery = query
-                    .replace(/\s*site:[^\s]+/g, '') // Remove site: restrictions
-                    .replace(/\s*OR\s*site:[^\s]+/g, '') // Remove OR site: restrictions
-                    .replace(/\s+/g, ' ') // Clean up multiple spaces
-                    .trim()
-                  
-                  
-                  const request = {
-                    contents: [
+    const tools: ToolSet = {}
+    if (enableSearch) {
+      tools.webSearch = {
+        description:
+          "Search the web for current information. Use this tool to find recent news, articles, documents, and other web content. DO NOT restrict searches to specific sites unless explicitly requested by the user. Search broadly across all available sources.",
+        parameters: z.object({
+          query: z.string().min(3),
+          maxResults: z.number().int().min(1).max(10).default(5).optional(),
+        }),
+        execute: async ({ query, maxResults = 5 }) => {
+          const googleKey =
+            process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+            process.env.GEMINI_API_KEY
+          try {
+            if (googleKey) {
+              // Use Google Generative AI with Search grounding
+              const { GoogleGenerativeAI } = await import(
+                "@google/generative-ai"
+              )
+              const ai = new GoogleGenerativeAI(googleKey)
+              const modelInstance = ai.getGenerativeModel({
+                model: model,
+              })
+              
+              // Clean query - remove any site restrictions that might be added by system prompt
+              const cleanQuery = query
+                .replace(/\s*site:[^\s]+/g, '') // Remove site: restrictions
+                .replace(/\s*OR\s*site:[^\s]+/g, '') // Remove OR site: restrictions
+                .replace(/\s+/g, ' ') // Clean up multiple spaces
+                .trim()
+              
+              
+              const request = {
+                contents: [
+                  {
+                    role: "user",
+                    parts: [
                       {
-                        role: "user",
-                        parts: [
-                          {
-                            text: `Search for: ${cleanQuery}. Find comprehensive information from all available sources including news sites, official websites, forums, and other relevant web content. Do not limit to specific domains.`,
-                          },
-                        ],
+                        text: `Search for: ${cleanQuery}. Find comprehensive information from all available sources including news sites, official websites, forums, and other relevant web content. Do not limit to specific domains.`,
                       },
                     ],
-                    tools: [{ googleSearch: {} }],
-                  }
-                  const result = await model.generateContent(
-                    request as unknown as Parameters<typeof model.generateContent>[0]
-                  )
-                  
-                  const response = await result.response
-                  const responseText = response.text()
-                  
-                  // Extract sources from grounding metadata
-                  const gm = (
-                    response as {
-                      candidates?: Array<{ groundingMetadata?: GroundingMetadata }>
-                    }
-                  ).candidates?.[0]?.groundingMetadata
-                  const sources = extractRealSources(gm, responseText)
-                  
-                  // Return sources in the format expected by the AI SDK
-                  return {
-                    sources: sources.slice(0, maxResults || 5),
-                    summary: responseText
-                  }
-                }
-                return {
-                  sources: [
-                    {
-                      title: "Search unavailable: configure GOOGLE_GENERATIVE_AI_API_KEY",
-                      url: "",
-                      snippet: "",
-                    },
-                  ]
-                }
-              } catch (err) {
-                console.error("webSearch tool failed:", err)
-                return {
-                  sources: [
-                    { title: "Search failed", url: "", snippet: "" },
-                  ]
-                }
+                  },
+                ],
+                tools: [{ googleSearch: {} }],
               }
-            },
-          },
-        }
-      : ({} as ToolSet)
+              const result = await modelInstance.generateContent(
+                request as unknown as Parameters<
+                  typeof modelInstance.generateContent
+                >[0]
+              )
+              
+              const response = await result.response
+              const responseText = response.text()
+              
+              // Extract sources from grounding metadata
+              const gm = (
+                response as {
+                  candidates?: Array<{ groundingMetadata?: GroundingMetadata }>
+                }
+              ).candidates?.[0]?.groundingMetadata
+              const sources = extractRealSources(gm, responseText)
+              
+              // Return sources in the format expected by the AI SDK
+              return {
+                sources: sources.slice(0, maxResults || 5),
+                summary: responseText
+              }
+            }
+            return {
+              sources: [
+                {
+                  title: "Search unavailable: configure GOOGLE_GENERATIVE_AI_API_KEY",
+                  url: "",
+                  snippet: "",
+                },
+              ]
+            }
+          } catch (err) {
+            console.error("webSearch tool failed:", err)
+            return {
+              sources: [
+                { title: "Search failed", url: "", snippet: "" },
+              ]
+            }
+          }
+        },
+      }
+    }
+
+    if (modelConfig.reasoning) {
+      tools.thinking = {
+        description: "Analyze the user's query and provide a step-by-step reasoning process.",
+        parameters: z.object({}),
+        execute: async () => {
+          return { steps: [] }
+        },
+      }
+    }
 
     const result = streamText({
       model: modelConfig.apiSdk(apiKey, { enableSearch }),
