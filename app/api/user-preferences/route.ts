@@ -36,7 +36,7 @@ export async function GET() {
         show_tool_invocations: true,
         show_conversation_previews: true,
         multi_model_enabled: false,
-        show_reasoning: false,
+        show_reasoning: true,
         hidden_models: [],
       })
     }
@@ -67,7 +67,7 @@ export async function GET() {
           show_tool_invocations: true,
           show_conversation_previews: true,
           multi_model_enabled: false,
-          show_reasoning: false,
+          show_reasoning: true,
           hidden_models: [],
         })
       }
@@ -120,14 +120,25 @@ export async function PUT(request: NextRequest) {
         hidden_models,
       } = parseResult.data
 
-      const merged: UserPreferences = {
+      // Augment with default values for any missing fields
+      const completePrefs = {
         layout: layout ?? "fullscreen",
         prompt_suggestions: prompt_suggestions ?? true,
         show_tool_invocations: show_tool_invocations ?? true,
         show_conversation_previews: show_conversation_previews ?? true,
         multi_model_enabled: multi_model_enabled ?? false,
-        show_reasoning: show_reasoning ?? false,
+        show_reasoning: show_reasoning ?? true,
         hidden_models: hidden_models ?? [],
+      }
+
+      const merged: UserPreferences = {
+        layout: completePrefs.layout,
+        prompt_suggestions: completePrefs.prompt_suggestions,
+        show_tool_invocations: completePrefs.show_tool_invocations,
+        show_conversation_previews: completePrefs.show_conversation_previews,
+        multi_model_enabled: completePrefs.multi_model_enabled,
+        show_reasoning: completePrefs.show_reasoning,
+        hidden_models: completePrefs.hidden_models,
       }
 
       return NextResponse.json({ success: true, ...merged })

@@ -15,7 +15,7 @@ export const defaultPreferences: UserPreferences = {
   showToolInvocations: true,
   showConversationPreviews: true,
   multiModelEnabled: false,
-  showReasoning: false,
+  showReasoning: true,
 }
 
 // Helper functions to convert between API format (snake_case) and frontend format (camelCase)
@@ -26,7 +26,7 @@ export function convertFromApiFormat(apiData: any): UserPreferences {
     showToolInvocations: apiData.show_tool_invocations ?? true,
     showConversationPreviews: apiData.show_conversation_previews ?? true,
     multiModelEnabled: apiData.multi_model_enabled ?? false,
-    showReasoning: apiData.show_reasoning ?? false,
+    showReasoning: apiData.show_reasoning ?? true,
   }
 }
 
