@@ -30,6 +30,8 @@ const DialogAuth = dynamic(
   { ssr: false }
 )
 
+const MotionAnimatePresence = AnimatePresence as any
+
 export function Chat() {
   const { chatId } = useChatSession()
   const {
@@ -224,7 +226,7 @@ export function Chat() {
     >
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
 
-      <AnimatePresence initial={false} mode="popLayout">
+      <MotionAnimatePresence initial={false} mode="popLayout">
         {showOnboarding ? (
           <motion.div
             key="onboarding"
@@ -250,7 +252,7 @@ export function Chat() {
         ) : (
           <Conversation key="conversation" {...conversationProps} />
         )}
-      </AnimatePresence>
+      </MotionAnimatePresence>
 
       <motion.div
         className={cn(

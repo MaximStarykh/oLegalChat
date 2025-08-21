@@ -26,7 +26,7 @@ export const FREE_MODELS_IDS = [
 ]
 
 // Default model is always Gemini 2.5 Flash
-export const MODEL_DEFAULT = "gemini-2.5-flash"
+export const MODEL_DEFAULT = "gemini-2.5-pro"
 export const FORCE_DEFAULT_MODEL = false
 
 export const APP_NAME = "oLegal"
