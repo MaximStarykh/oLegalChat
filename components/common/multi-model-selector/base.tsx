@@ -153,8 +153,7 @@ export function MultiModelSelector({
   const filteredModels = filterAndSortModels(
     models,
     favoriteModels || [],
-    searchQuery,
-    isModelHidden
+    searchQuery
   )
 
   if (isLoadingModels) {
