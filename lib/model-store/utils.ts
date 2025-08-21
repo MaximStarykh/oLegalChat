@@ -15,23 +15,19 @@ export function filterAndSortModels(
 ): ModelConfig[] {
   return models
     .filter((model) => FREE_MODELS_IDS.includes(model.id))
-    .filter((model) => {
-      // If user has favorite models, only show favorites
-      if (favoriteModels && favoriteModels.length > 0) {
-        return favoriteModels.includes(model.id)
-      }
-      // If no favorites, show all models
-      return true
-    })
     .filter((model) =>
       model.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => {
-      // If user has favorite models, maintain their order
-      if (favoriteModels && favoriteModels.length > 0) {
-        const aIndex = favoriteModels.indexOf(a.id)
-        const bIndex = favoriteModels.indexOf(b.id)
-        return aIndex - bIndex
+      const aIsFavorite = favoriteModels.includes(a.id)
+      const bIsFavorite = favoriteModels.includes(b.id)
+
+      if (aIsFavorite && !bIsFavorite) return -1
+      if (!aIsFavorite && bIsFavorite) return 1
+
+      // If both are favorites, sort by their order in the favorite list
+      if (aIsFavorite && bIsFavorite) {
+        return favoriteModels.indexOf(a.id) - favoriteModels.indexOf(b.id)
       }
 
       // Fallback to original sorting (free models first)
