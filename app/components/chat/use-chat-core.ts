@@ -200,7 +200,18 @@ export function useChatCore({
         experimental_attachments: attachments || undefined,
       }
 
-      handleSubmit(undefined, options)
+      // IMPORTANT: use append instead of handleSubmit because we clear input before submit
+      // Using handleSubmit with an empty input results in no request being sent.
+      // append() explicitly sends the provided content.
+      append(
+        {
+          role: "user",
+          content: input,
+          experimental_attachments:
+            attachments && attachments.length > 0 ? attachments : undefined,
+        },
+        options
+      )
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
       cacheAndAddMessage(optimisticMessage)
