@@ -335,10 +335,7 @@ export async function POST(req: Request) {
     }
 
     const result = streamText({
-      model: modelConfig.apiSdk(apiKey, {
-        enableSearch,
-        enableReasoning: modelConfig.reasoning,
-      }),
+      model: modelConfig.apiSdk(apiKey, { enableSearch }),
       system: effectiveSystemPrompt,
       messages: messages,
       tools,
