@@ -334,18 +334,11 @@ export async function POST(req: Request) {
       }
     }
 
-    if (modelConfig.reasoning) {
-      tools.thinking = {
-        description: "Analyze the user's query and provide a step-by-step reasoning process.",
-        parameters: z.object({}),
-        execute: async () => {
-          return { steps: [] }
-        },
-      }
-    }
-
     const result = streamText({
-      model: modelConfig.apiSdk(apiKey, { enableSearch }),
+      model: modelConfig.apiSdk(apiKey, {
+        enableSearch,
+        enableReasoning: modelConfig.reasoning,
+      }),
       system: effectiveSystemPrompt,
       messages: messages,
       tools,

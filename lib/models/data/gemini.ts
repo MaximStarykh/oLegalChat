@@ -25,8 +25,10 @@ const geminiModels: ModelConfig[] = [
     apiDocs: "https://ai.google.dev/api",
     modelPage: "https://ai.google.dev",
     icon: "gemini",
-    apiSdk: (apiKey?: string, opts?: { enableSearch?: boolean }) =>
-      openproviders("gemini-2.5-flash", opts as unknown as any, apiKey),
+    apiSdk: (
+      apiKey?: string,
+      opts?: { enableSearch?: boolean; enableReasoning?: boolean }
+    ) => openproviders("gemini-2.5-flash", opts as unknown as any, apiKey),
   },
   {
     id: "gemini-2.5-pro",
@@ -48,10 +50,12 @@ const geminiModels: ModelConfig[] = [
     intelligence: "High",
     website: "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
     apiDocs: "https://ai.google.dev/api",
-    modelPage: "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
+    modelPage: "https://cloud.google.com/vertex-ai/docs/models/gemini/2-5-pro",
     icon: "gemini",
-    apiSdk: (apiKey?: string, opts?: { enableSearch?: boolean }) =>
-      openproviders("gemini-2.5-pro", opts as unknown as any, apiKey),
+    apiSdk: (
+      apiKey?: string,
+      opts?: { enableSearch?: boolean; enableReasoning?: boolean }
+    ) => openproviders("gemini-2.5-pro", opts as unknown as any, apiKey),
   },
 ]
 
