@@ -8,6 +8,7 @@ interface UserPreferences {
   show_tool_invocations: boolean
   show_conversation_previews: boolean
   multi_model_enabled: boolean
+  show_reasoning: boolean
   hidden_models: string[]
 }
 
@@ -19,6 +20,7 @@ const prefsSchema = z.object({
   show_tool_invocations: z.boolean().optional(),
   show_conversation_previews: z.boolean().optional(),
   multi_model_enabled: z.boolean().optional(),
+  show_reasoning: z.boolean().optional(),
   hidden_models: z.array(z.string()).optional(),
 })
 
@@ -34,6 +36,7 @@ export async function GET() {
         show_tool_invocations: true,
         show_conversation_previews: true,
         multi_model_enabled: false,
+        show_reasoning: false,
         hidden_models: [],
       })
     }
@@ -64,6 +67,7 @@ export async function GET() {
           show_tool_invocations: true,
           show_conversation_previews: true,
           multi_model_enabled: false,
+          show_reasoning: false,
           hidden_models: [],
         })
       }
@@ -81,6 +85,7 @@ export async function GET() {
       show_tool_invocations: data.show_tool_invocations,
       show_conversation_previews: data.show_conversation_previews,
       multi_model_enabled: data.multi_model_enabled,
+      show_reasoning: data.show_reasoning,
       hidden_models: data.hidden_models || [],
     })
   } catch (error) {
@@ -111,6 +116,7 @@ export async function PUT(request: NextRequest) {
         show_tool_invocations,
         show_conversation_previews,
         multi_model_enabled,
+        show_reasoning,
         hidden_models,
       } = parseResult.data
 
@@ -120,6 +126,7 @@ export async function PUT(request: NextRequest) {
         show_tool_invocations: show_tool_invocations ?? true,
         show_conversation_previews: show_conversation_previews ?? true,
         multi_model_enabled: multi_model_enabled ?? false,
+        show_reasoning: show_reasoning ?? false,
         hidden_models: hidden_models ?? [],
       }
 
@@ -150,6 +157,7 @@ export async function PUT(request: NextRequest) {
       show_tool_invocations,
       show_conversation_previews,
       multi_model_enabled,
+      show_reasoning,
       hidden_models,
     } = parseResult.data
 
@@ -164,6 +172,8 @@ export async function PUT(request: NextRequest) {
       updateData.show_conversation_previews = show_conversation_previews
     if (multi_model_enabled !== undefined)
       updateData.multi_model_enabled = multi_model_enabled
+    if (show_reasoning !== undefined)
+      updateData.show_reasoning = show_reasoning
     if (hidden_models !== undefined) updateData.hidden_models = hidden_models
 
     // Try to update first, then insert if doesn't exist
@@ -196,6 +206,7 @@ export async function PUT(request: NextRequest) {
       show_tool_invocations: data.show_tool_invocations,
       show_conversation_previews: data.show_conversation_previews,
       multi_model_enabled: data.multi_model_enabled,
+      show_reasoning: data.show_reasoning,
       hidden_models: data.hidden_models || [],
     })
   } catch (error) {

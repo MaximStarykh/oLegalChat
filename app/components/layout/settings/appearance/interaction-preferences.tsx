@@ -10,6 +10,7 @@ export function InteractionPreferences() {
     setShowToolInvocations,
     setShowConversationPreviews,
     setMultiModelEnabled,
+    setShowReasoning,
   } = useUserPreferences()
 
   return (
@@ -71,6 +72,21 @@ export function InteractionPreferences() {
           <Switch
             checked={preferences.multiModelEnabled}
             onCheckedChange={setMultiModelEnabled}
+          />
+        </div>
+      </div>
+      {/* Show Reasoning */}
+      <div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium">Show reasoning</h3>
+            <p className="text-muted-foreground text-xs">
+              Display the model's thought process and reasoning steps
+            </p>
+          </div>
+          <Switch
+            checked={preferences.showReasoning}
+            onCheckedChange={setShowReasoning}
           />
         </div>
       </div>

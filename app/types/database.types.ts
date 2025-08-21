@@ -308,6 +308,7 @@ export type Database = {
           prompt_suggestions: boolean | null
           show_tool_invocations: boolean | null
           show_conversation_previews: boolean | null
+          show_reasoning: boolean | null
           multi_model_enabled: boolean | null
           hidden_models: string[] | null
           created_at: string | null
@@ -319,6 +320,7 @@ export type Database = {
           prompt_suggestions?: boolean | null
           show_tool_invocations?: boolean | null
           show_conversation_previews?: boolean | null
+          show_reasoning?: boolean | null
           multi_model_enabled?: boolean | null
           hidden_models?: string[] | null
           created_at?: string | null
@@ -330,6 +332,7 @@ export type Database = {
           prompt_suggestions?: boolean | null
           show_tool_invocations?: boolean | null
           show_conversation_previews?: boolean | null
+          show_reasoning?: boolean | null
           multi_model_enabled?: boolean | null
           hidden_models?: string[] | null
           created_at?: string | null
