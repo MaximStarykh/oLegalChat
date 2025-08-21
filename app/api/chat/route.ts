@@ -341,7 +341,24 @@ export async function POST(req: Request) {
       tools,
       maxSteps: 10,
       onChunk: ({ chunk }) => {
-        console.log("Stream Chunk:", JSON.stringify(chunk, null, 2))
+        try {
+          // High-signal logging to detect reasoning/tool events
+          if ((chunk as any).type === "reasoning") {
+            console.log("[chat:onChunk] reasoning:", (chunk as any).text || (chunk as any).reasoning || "")
+          } else if ((chunk as any).type === "tool-call") {
+            console.log("[chat:onChunk] tool-call:", JSON.stringify(chunk, null, 2))
+          } else if ((chunk as any).type === "tool-result") {
+            console.log("[chat:onChunk] tool-result:", JSON.stringify(chunk, null, 2))
+          } else if ((chunk as any).type === "text-delta") {
+            // Keep this lightweight to avoid noisy logs; show small preview
+            const t = (chunk as any).textDelta || ""
+            console.log("[chat:onChunk] text-delta:", t.slice(0, 60))
+          } else {
+            console.log("[chat:onChunk] other:", JSON.stringify(chunk, null, 2))
+          }
+        } catch (e) {
+          console.log("[chat:onChunk] log error:", e)
+        }
       },
       onError: (err: unknown) => {
         console.error("Streaming error occurred:", err)

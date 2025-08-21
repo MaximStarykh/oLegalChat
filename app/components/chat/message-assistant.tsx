@@ -61,6 +61,20 @@ export function MessageAssistant({
         ? rp.text
         : ""
 
+  // Client-side diagnostic logs (no-op on server)
+  try {
+    if (typeof window !== "undefined") {
+      if (parts && parts.length > 0) {
+        console.log("[MessageAssistant] parts:", parts.map((p: any) => p.type))
+      }
+      if (reasoningPart) {
+        console.log("[MessageAssistant] reasoningPart present; text length:", reasoningText.length)
+      } else {
+        console.log("[MessageAssistant] no reasoningPart in message")
+      }
+    }
+  } catch {}
+
   const contentNullOrEmpty = children === null || children === ""
   const isLastStreaming = status === "streaming" && isLast
   const isSearching =
