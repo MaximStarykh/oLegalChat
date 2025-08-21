@@ -58,7 +58,6 @@ export function MultiModelSelector({
   maxModels = 5,
 }: MultiModelSelectorProps) {
   const { models, isLoading: isLoadingModels, favoriteModels } = useModel()
-  const { isModelHidden } = useUserPreferences()
 
   const selectedModels = models.filter((model) =>
     selectedModelIds.includes(model.id)
