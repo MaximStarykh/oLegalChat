@@ -21,6 +21,7 @@ const TRANSITION = {
 
 const CaretDownIcon = (props: IconProps) => <CaretDown {...props} />
 const LinkIcon = (props: IconProps) => <Link {...props} />
+const MotionAnimatePresence = AnimatePresence as any
 
 export function SourcesList({ sources, className }: SourcesListProps) {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -134,7 +135,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
           />
         </button>
 
-        <(AnimatePresence as any) initial={false}>
+        <MotionAnimatePresence initial={false}>
           {isExpanded && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
@@ -192,7 +193,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
               </ul>
             </motion.div>
           )}
-        </(AnimatePresence as any)>
+        </MotionAnimatePresence>
       </div>
     </div>
   )
