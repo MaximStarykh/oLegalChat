@@ -38,6 +38,7 @@ add_env CSRF_SECRET "${CSRF_SECRET-}" production
 add_env OPENAI_API_KEY "${OPENAI_API_KEY-}" production
 add_env MISTRAL_API_KEY "${MISTRAL_API_KEY-}" production
 add_env GOOGLE_GENERATIVE_AI_API_KEY "${GOOGLE_GENERATIVE_AI_API_KEY-}" production
+add_env GEMINI_API_KEY "${GEMINI_API_KEY-}" production
 add_env ANTHROPIC_API_KEY "${ANTHROPIC_API_KEY-}" production
 add_env PERPLEXITY_API_KEY "${PERPLEXITY_API_KEY-}" production
 add_env XAI_API_KEY "${XAI_API_KEY-}" production

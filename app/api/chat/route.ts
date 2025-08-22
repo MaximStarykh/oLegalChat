@@ -335,7 +335,7 @@ export async function POST(req: Request) {
     }
 
     const result = streamText({
-      model: modelConfig.apiSdk(apiKey, { enableSearch }),
+      model: modelConfig.apiSdk(apiKey),
       system: effectiveSystemPrompt,
       messages: messages,
       tools,
@@ -380,7 +380,6 @@ export async function POST(req: Request) {
 
     return result.toDataStreamResponse({
       sendReasoning: true,
-      sendSources: true,
       getErrorMessage: (error: unknown) => {
         console.error("Error forwarded to client:", error)
         return extractErrorMessage(error)

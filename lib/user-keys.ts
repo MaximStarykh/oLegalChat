@@ -22,7 +22,8 @@ export async function getEffectiveApiKey(
     openai: env.OPENAI_API_KEY,
     mistral: env.MISTRAL_API_KEY,
     perplexity: env.PERPLEXITY_API_KEY,
-    google: env.GOOGLE_GENERATIVE_AI_API_KEY,
+    // Prefer GOOGLE_GENERATIVE_AI_API_KEY; fall back to GEMINI_API_KEY
+    google: env.GOOGLE_GENERATIVE_AI_API_KEY || env.GEMINI_API_KEY || undefined,
     anthropic: env.ANTHROPIC_API_KEY,
     xai: env.XAI_API_KEY,
     openrouter: env.OPENROUTER_API_KEY,
