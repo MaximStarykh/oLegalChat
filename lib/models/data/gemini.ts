@@ -46,9 +46,11 @@ const geminiModels: ModelConfig[] = [
     openSource: false,
     speed: "Medium",
     intelligence: "High",
-    website: "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
+    website:
+      "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
     apiDocs: "https://ai.google.dev/api",
-    modelPage: "https://cloud.google.com/vertex-ai/docs/models/gemini/2-5-pro",
+    modelPage:
+      "https://cloud.google.com/vertex-ai/docs/models/gemini/2-5-pro",
     icon: "gemini",
     apiSdk: (apiKey?: string) =>
       openproviders("gemini-2.5-pro", undefined, apiKey),

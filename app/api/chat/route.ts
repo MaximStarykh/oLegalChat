@@ -284,7 +284,7 @@ export async function POST(req: Request) {
                     role: "user",
                     parts: [
                       {
-                        text: `Search for: ${cleanQuery}. Find comprehensive information from all available sources including news sites, official websites, forums, and other relevant web content. Do not limit to specific domains.`,
+                        text: `Search for: ${cleanQuery}. Find comprehensive information from all available sources including news sites, official websites, forums, and other relevant web content. Do not limit to specific domains. Return relevant citations.`,
                       },
                     ],
                   },
@@ -311,7 +311,7 @@ export async function POST(req: Request) {
               // Return sources in the format expected by the AI SDK
               return {
                 sources: sources.slice(0, maxResults || 5),
-                summary: responseText
+                summary: responseText,
               }
             }
             return {
