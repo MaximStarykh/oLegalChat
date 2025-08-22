@@ -133,12 +133,14 @@ export function useChatCore({
     }
 
     const optimisticId = `optimistic-${Date.now().toString()}`
+    // Preserve current input before clearing so append() sends the right content
+    const messageContent = input
     const optimisticAttachments =
       files.length > 0 ? createOptimisticAttachments(files) : []
 
     const optimisticMessage = {
       id: optimisticId,
-      content: input,
+      content: messageContent,
       role: "user" as const,
       createdAt: new Date(),
       experimental_attachments:
@@ -159,14 +161,14 @@ export function useChatCore({
         return
       }
 
-      const currentChatId = await ensureChatExists(uid, input)
+      const currentChatId = await ensureChatExists(uid, messageContent)
       if (!currentChatId) {
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
         cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
         return
       }
 
-      if (input.length > MESSAGE_MAX_LENGTH) {
+      if (messageContent.length > MESSAGE_MAX_LENGTH) {
         toast({
           title: `The message you submitted was too long, please submit something shorter. (Max ${MESSAGE_MAX_LENGTH} characters)`,
           status: "error",
@@ -206,7 +208,7 @@ export function useChatCore({
       append(
         {
           role: "user",
-          content: input,
+          content: messageContent,
           experimental_attachments:
             attachments && attachments.length > 0 ? attachments : undefined,
         },

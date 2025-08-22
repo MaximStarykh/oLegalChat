@@ -265,6 +265,7 @@ export async function POST(req: Request) {
                 "@google/generative-ai"
               )
               const ai = new GoogleGenerativeAI(googleKey)
+              // Use the same model selected by the user to keep behavior consistent
               const modelInstance = ai.getGenerativeModel({
                 model: model,
               })
