@@ -57,7 +57,7 @@ export type PerplexityModel =
   | "sonar-reasoning-pro"
   | "sonar-reasoning"
 
-export type GeminiModel = "gemini-2.5-flash"
+export type GeminiModel = "gemini-2.5-flash" | "gemini-2.5-pro"
 
 export type AnthropicModel =
   | "claude-3-7-sonnet-20250219"

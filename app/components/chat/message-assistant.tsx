@@ -49,7 +49,8 @@ export function MessageAssistant({
   const toolInvocationParts = parts?.filter(
     (part) => part.type === "tool-invocation"
   )
-  const reasoningPart = parts?.find((part) => part.type === "reasoning") as
+  // Prefer the latest reasoning part when multiple arrive
+  const reasoningPart = parts?.filter((part) => part.type === "reasoning").slice(-1)[0] as
     | (MessageAISDK["parts"] extends Array<infer P> ? P : never)
     | undefined
 
@@ -61,12 +62,53 @@ export function MessageAssistant({
         ? rp.text
         : ""
 
+  // Fallback: derive visible assistant text from streamed parts when content is empty
+  const derivedTextFromParts: string = (() => {
+    if (!parts || parts.length === 0) return ""
+    try {
+      // Prefer finalized text parts first
+      const textParts = (parts as Array<any>)
+        .filter((p) => p && (p.type === "text" || p.type === "output-text"))
+        .map((p) => (typeof p.text === "string" ? p.text : ""))
+        .join("")
+        .trim()
+      if (textParts) return textParts
+
+      // Otherwise concatenate text deltas
+      const delta = (parts as Array<any>)
+        .filter((p) => p && p.type === "text-delta")
+        .map((p) => (typeof p.textDelta === "string" ? p.textDelta : ""))
+        .join("")
+        .trim()
+      return delta
+    } catch {
+      return ""
+    }
+  })()
+
   // Client-side diagnostic logs (no-op on server)
   try {
     if (typeof window !== "undefined") {
       if (parts && parts.length > 0) {
         console.log("[MessageAssistant] parts:", parts.map((p: any) => p.type))
       }
+      const model = (parts as any)?.find?.((p: any) => p?.type === "model")?.modelId
+      if (model) {
+        console.log("[MessageAssistant] model:", model)
+      }
+      const usedWebSearch = (parts as any)?.some?.(
+        (p: any) =>
+          p?.type === "tool-invocation" &&
+          (p?.toolInvocation?.toolName === "webSearch" ||
+            p?.toolInvocation?.toolName === "google_search") &&
+          (p?.toolInvocation?.state === "call" ||
+            p?.toolInvocation?.state === "result")
+      )
+      console.log("[MessageAssistant] webSearchUsed:", Boolean(usedWebSearch))
+      console.log(
+        "[MessageAssistant] reasoningUsed:",
+        Boolean(reasoningPart && reasoningText)
+      )
       if (reasoningPart) {
         console.log("[MessageAssistant] reasoningPart present; text length:", reasoningText.length)
       } else {
@@ -75,13 +117,17 @@ export function MessageAssistant({
     }
   } catch {}
 
-  const contentNullOrEmpty = children === null || children === ""
+  const contentToRender =
+    typeof children === "string" && children !== "" ? children : derivedTextFromParts
+  const contentNullOrEmpty = contentToRender === null || contentToRender === ""
   const isLastStreaming = status === "streaming" && isLast
   const isSearching =
     parts?.some(
       (part) =>
         part.type === "tool-invocation" &&
-        part.toolInvocation?.toolName === "webSearch" &&
+        // server uses google_search tool name
+        (part.toolInvocation?.toolName === "webSearch" ||
+          part.toolInvocation?.toolName === "google_search") &&
         part.toolInvocation?.state === "call"
     ) || false
   const searchImageResults =
@@ -160,7 +206,7 @@ export function MessageAssistant({
             )}
             markdown={true}
           >
-            {children}
+            {contentToRender}
           </MessageContent>
         )}
 

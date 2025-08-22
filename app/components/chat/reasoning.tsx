@@ -1,4 +1,5 @@
 import { Markdown } from "@/components/prompt-kit/markdown"
+import React from "react"
 import { cn } from "@/lib/utils"
 import { BrainIcon, CaretDownIcon } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -17,12 +18,33 @@ const TRANSITION = {
 
 export function Reasoning({ reasoning, isStreaming }: ReasoningProps) {
   const [wasStreaming, setWasStreaming] = useState(isStreaming ?? false)
-  const [isExpanded, setIsExpanded] = useState(() => isStreaming ?? true)
+  const [isExpanded, setIsExpanded] = useState(() => true)
 
-  if (wasStreaming && isStreaming === false) {
-    setWasStreaming(false)
-    setIsExpanded(false)
+  // Avoid state updates during render; react to prop changes in an effect
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      if (typeof window !== "undefined") {
+        console.log(
+          "[Reasoning] mount: isStreaming=",
+          isStreaming,
+          " initialExpanded=",
+          isExpanded
+        )
+      }
+    } catch {}
   }
+
+  // Collapse panel when streaming finishes (show fully while streaming)
+  React.useEffect(() => {
+    if (isStreaming) {
+      setWasStreaming(true)
+      setIsExpanded(true)
+    } else if (wasStreaming && isStreaming === false) {
+      setWasStreaming(false)
+      setIsExpanded(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStreaming])
 
   return (
     <div>

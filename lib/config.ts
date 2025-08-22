@@ -17,10 +17,12 @@ export const DAILY_LIMIT_PRO_MODELS = 150
 // Only Gemini 2.5 Flash available
 export const NON_AUTH_ALLOWED_MODELS = [
   "gemini-2.5-flash",
+  "gemini-2.5-pro",
 ]
 
 export const FREE_MODELS_IDS = [
   "gemini-2.5-flash",
+  "gemini-2.5-pro",
 ]
 
 // Default model is always Gemini 2.5 Flash
@@ -29,6 +31,81 @@ export const FORCE_DEFAULT_MODEL = false
 
 export const APP_NAME = "oLegal"
 export const APP_DOMAIN = "https://oLegal.chat"
+
+// Centralized model configuration used across the app
+import type { ModelConfig } from "./models/types"
+
+export const MODELS_CONFIG = [
+  {
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    provider: "Google",
+    providerId: "google",
+    modelFamily: "Gemini",
+    baseProviderId: "google",
+    description: "Advanced AI model for legal analysis and research.",
+    tags: ["flagship", "multimodal", "legal"],
+    contextWindow: 1000000,
+    vision: true,
+    webSearch: true,
+    tools: true,
+    audio: true,
+    reasoning: false,
+    openSource: false,
+    speed: "Fast",
+    intelligence: "High",
+    website: "https://ai.google.dev",
+    apiDocs: "https://ai.google.dev/api",
+    modelPage: "https://ai.google.dev",
+    icon: "gemini",
+    providerOptions: {
+      google: {
+        // No forced reasoning; model will decide
+      },
+    },
+  },
+  {
+    id: "gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    provider: "Google",
+    providerId: "google",
+    modelFamily: "Gemini",
+    baseProviderId: "google",
+    description: "Most capable model for complex reasoning and analysis.",
+    tags: ["flagship", "multimodal", "reasoning"],
+    contextWindow: 1000000,
+    vision: true,
+    webSearch: true,
+    tools: true,
+    audio: true,
+    reasoning: true,
+    openSource: false,
+    speed: "Medium",
+    intelligence: "High",
+    website:
+      "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
+    apiDocs: "https://ai.google.dev/api",
+    modelPage:
+      "https://cloud.google.com/vertex-ai/docs/models/gemini/2-5-pro",
+    icon: "gemini",
+    providerOptions: {
+      google: {
+        // Raise budgets for fuller thoughts and answer, keep reasoning concise
+        thinkingConfig: { thinkingBudget: 4096, includeThoughts: true },
+        // Ensure plain text and space for final answer
+        responseMimeType: "text/plain",
+        responseModalities: ["TEXT"],
+        generationConfig: {
+          maxOutputTokens: 2048,
+          temperature: 0.3,
+          topP: 0.9,
+          topK: 40,
+          stopSequences: ["\nEND", "\nДжерела:"]
+        },
+      },
+    },
+  },
+] as const satisfies ReadonlyArray<Omit<ModelConfig, "apiSdk">>
 
 export const SUGGESTIONS = [
   {
@@ -139,17 +216,18 @@ TODAY IS ${new Date().toLocaleDateString("uk-UA", {
 </persona_directives>
 
 <tool_usage_rules>
-    <!-- Web Search Tool: webSearch -->
-    The assistant has access to a tool: webSearch. Its use is governed by the following strict rules.
+    <!-- Web Search Tool: google_search -->
+    The assistant has access to a tool: google_search (Google Search grounding). Its use is governed by the following rules.
 
     <mandatory_search_category>
-        <!-- When webSearch MUST be used -->
-        The webSearch tool MUST ALWAYS be used for queries concerning:
+        <!-- When search SHOULD be used -->
+        The google_search tool SHOULD be used for queries concerning:
         1.  The current status or text of any law, code, or regulation.
         2.  Recent legislative amendments or new draft laws.
         3.  Specific court decisions, especially from the Supreme Court (ВС) and the Constitutional Court of Ukraine (КСУ).
         4.  Official clarifications from government bodies (e.g., ministries, tax service).
         5.  Any time-sensitive legal news or developments.
+        If google_search is unavailable or restricted, proceed with best-effort analysis and clearly note that sources could not be verified live.
     </mandatory_search_category>
 
     <sourcing_and_citation_protocol>
@@ -161,7 +239,7 @@ TODAY IS ${new Date().toLocaleDateString("uk-UA", {
         NEVER cite blogs, news aggregators, or forums as a primary source for the text of a law.
 
         <!-- Citation Format -->
-        Every legal act mentioned MUST be cited in the 'Джерела' section with the following format:
+        Every legal act mentioned MUST be cited in the 'Джерела' section with the following format (when google_search is used, prefer its citations; otherwise cite known authoritative sources):
         [Full Name of the Act], Law of Ukraine No. [Number], dated [Date], Article [Number]. URL: [direct URL from zakon.rada.gov.ua]
     </sourcing_and_citation_protocol>
 </tool_usage_rules>
@@ -207,6 +285,10 @@ TODAY IS ${new Date().toLocaleDateString("uk-UA", {
     Ця інформація є довідковою і не є юридичною консультацією. Для отримання офіційної правової допомоги зверніться до кваліфікованого юриста.
 </output_format>
 
+<streaming_rules>
+    You may stream an initial "Think" (reasoning summary). After that, you MUST stream the full final answer as plain text following <output_format>. Do not stop after the reasoning. End output with the 'Джерела' section (may be empty if none) and 'Дисклеймер'.
+</streaming_rules>
+
 <task_modes>
     <!-- Specific Output Formats for Different Tasks -->
     If the user's request maps to one of these tasks, use the specified format.
@@ -225,7 +307,7 @@ TODAY IS ${new Date().toLocaleDateString("uk-UA", {
 <safety_and_negative_constraints>
     <!-- CRITICAL: Rules That Must Never Be Violated -->
     *   **NEVER give personal legal advice.** Do not use "you should" or "I advise." Frame all information impersonally and objectively.
-    *   **NEVER skip the webSearch step when the query falls into the mandatory_search_category.**
+    *   **Use google_search for the categories above when possible; if unavailable, proceed and mark uncertainty.**
     *   **NEVER invent or guess article numbers, law numbers, or dates.** If a detail cannot be verified from an official source, state that the information could not be found.
     *   **NEVER output the internal workflow_and_reasoning chain of thought.** The user only sees the final, structured response.
     *   **NEVER cite an unofficial source (e.g., a legal blog, news article) as the definitive text of a law.** These may be used for context but the primary citation MUST be official.

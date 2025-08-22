@@ -1,8 +1,9 @@
-import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import { SYSTEM_PROMPT_DEFAULT, MODELS_CONFIG } from "@/lib/config"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 import { Attachment } from "@ai-sdk/ui-utils"
+import { google } from "@ai-sdk/google"
 import { Message as MessageAISDK, streamText, ToolSet } from "ai"
 import { z } from "zod"
 import {
@@ -246,7 +247,15 @@ export async function POST(req: Request) {
     }
 
     const tools: ToolSet = {}
+    // Expose web search tools ONLY when explicitly enabled by the UI
     if (enableSearch) {
+      try {
+        const baseProvider = getProviderForModel(model)
+        if (baseProvider === "google") {
+          ;(tools as any).google_search = (google as any).tools.googleSearch({})
+        }
+      } catch {}
+
       tools.webSearch = {
         description:
           "Search the web for current information. Use this tool to find recent news, articles, documents, and other web content. DO NOT restrict searches to specific sites unless explicitly requested by the user. Search broadly across all available sources.",
@@ -335,20 +344,39 @@ export async function POST(req: Request) {
       }
     }
 
+    const cfg = MODELS_CONFIG.find((m) => m.id === model)
+
+    let sawReasoning = false
+    let sawWebSearch = false
+    try {
+      console.log(`[chat] model=${model} sendReasoning=true`)
+    } catch {}
+
+    const hasTools = Object.keys(tools).length > 0
+
     const result = streamText({
       model: modelConfig.apiSdk(apiKey),
       system: effectiveSystemPrompt,
       messages: messages,
-      tools,
-      maxSteps: 10,
+      ...(hasTools ? { tools } : {}),
+      providerOptions: cfg?.providerOptions as any,
+      // Explicitly control agent loop: only set when tools are present
+      ...(hasTools ? { maxSteps: 8 } : {}),
       onChunk: ({ chunk }) => {
         try {
           // High-signal logging to detect reasoning/tool events
           if ((chunk as any).type === "reasoning") {
+            sawReasoning = true
             console.log("[chat:onChunk] reasoning:", (chunk as any).text || (chunk as any).reasoning || "")
           } else if ((chunk as any).type === "tool-call") {
+            if ((chunk as any).toolName === "webSearch" || (chunk as any).toolName === "google_search") {
+              sawWebSearch = true
+            }
             console.log("[chat:onChunk] tool-call:", JSON.stringify(chunk, null, 2))
           } else if ((chunk as any).type === "tool-result") {
+            if ((chunk as any).toolName === "webSearch" || (chunk as any).toolName === "google_search") {
+              sawWebSearch = true
+            }
             console.log("[chat:onChunk] tool-result:", JSON.stringify(chunk, null, 2))
           } else if ((chunk as any).type === "text-delta") {
             // Keep this lightweight to avoid noisy logs; show small preview
@@ -376,11 +404,16 @@ export async function POST(req: Request) {
             message_group_id,
           })
         }
+        try {
+          console.log(`[chat] summary model=${model} webSearchUsed=${sawWebSearch} reasoningUsed=${sawReasoning}`)
+        } catch {}
       },
     })
 
+    const sendReasoning = Boolean(cfg?.reasoning)
+
     return result.toDataStreamResponse({
-      sendReasoning: true,
+      sendReasoning,
       getErrorMessage: (error: unknown) => {
         console.error("Error forwarded to client:", error)
         return extractErrorMessage(error)

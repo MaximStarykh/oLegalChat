@@ -36,6 +36,9 @@ type ModelConfig = {
   // apiSdk?: () => LanguageModelV1 // "openai("gpt-4.1-nano")"
   apiSdk?: (apiKey?: string) => LanguageModelV1
 
+  // Optional provider-specific options to be passed to the AI SDK
+  providerOptions?: Record<string, unknown>
+
   accessible?: boolean // true if the model is accessible to the user
 }
 
